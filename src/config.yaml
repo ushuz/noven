@@ -1,0 +1,7 @@
+name: Noven
+version: 1
+
+cron:
+- description: check new courses
+  url: backend/update
+  schedule: "* */2 14-31 1 *"

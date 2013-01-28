@@ -1,0 +1,17 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<title>登记 - Noven</title>
+</head>
+<body>
+	<form action="/" method="post" >
+		{{ xsrf_form_html() }}
+		<div><label for="uc">学号：</label><input name="uc" type="text" autocomplete="off" /></div>
+		<div><label for="up">密码：</label><input name="up" type="password" /></div>
+		<div><label for="mc">手机号码：</label><input name="mc" type="text" autocomplete="off" /></div>
+		<div><label for="mp">飞信密码：</label><input name="mp" type="password" /></div>
+		<div><input type="submit" value="登记" /></div>
+	</form>
+</body>
+</html>

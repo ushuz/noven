@@ -1,0 +1,15 @@
+﻿<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<title>验证 - Noven</title>
+</head>
+<body>
+	<form action="/verify" method="post">
+		{{ xsrf_form_html() }}
+        <div>发送至：{{ current_user.mobileno }}</div>
+		<div>验证码：<input name="vcode" type="text" /></div>
+		<div><input type="submit" value="验证"/></div>
+	</form>
+</body>
+</html>
