@@ -1,4 +1,4 @@
-﻿# -*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 import sae
 import sae.kvdb
@@ -12,8 +12,8 @@ import hashlib
 import functools
 
 #import the main part and third-part libs for the app
-from libs import alpha
-from libs import PyFetion
+from libs import alpha2 as alpha
+from libs import NovenFetion
 
 NEW_COURSES_TEMPLATE = u'''Hello，%s！有%d门课出分了，分别是%s。%s。[Noven]'''
 VCODE_MESSAGE_TEMPLATE = u'''Hello，%s！您的登记验证码为【%s】 [Noven]'''
@@ -59,7 +59,7 @@ class SignupHandler(BaseHandler):
             userinfo["mcode"],
             userinfo["mpswd"]
         )
-        if new_user.name and self.kv.add(new_user.usercode.encode("utf-8"), new_user):    #set() only takes str as key, WTF!
+        if new_user.name and self.kv.set(new_user.usercode.encode("utf-8"), new_user):    #set() only takes str as key, WTF!
             self.redirect("/verify")
         else:
             self.redirect("/sorry")
@@ -72,14 +72,14 @@ class VerifyHandler(BaseHandler):
         veryinfo = {
             "n": self.current_user.mobileno,
             "p": self.current_user.mobilepass,
-            "c": (VCODE_MESSAGE_TEMPLATE % (self.current_user.name, hashlib.md5(self.current_user.usercode).hexdigest()[:6])).encode("utf-8")
+            "c": (VCODE_MESSAGE_TEMPLATE % (self.current_user.name, hashlib.md5(self.get_cookie("uc")).hexdigest()[:6])).encode("utf-8")
         }
         sae.taskqueue.add_task("send_verify_sms_task", "/backend/sms", urllib.urlencode(veryinfo))
 
     def post(self):
         vcode = self.get_argument("vcode", None)
 
-        if vcode == hashlib.md5(self.current_user.usercode).hexdigest()[:6]:
+        if vcode == hashlib.md5(self.get_cookie("uc")).hexdigest()[:6]:
             self.current_user.verified = True
             self.kv.set(self.current_user.usercode.encode("utf-8"), self.current_user)
             self.redirect("/welcome")
@@ -111,7 +111,7 @@ class UpdateTaskHandler(BaseHandler):
             if not u.verified or not u.name:
                 continue
 
-            new_courses = u.refresh()
+            new_courses = u.update()
             if new_courses is not None:
                 try:
                     self.kv.set(u.usercode, u)
@@ -134,7 +134,7 @@ class SMSTaskHandler(BaseHandler):
         p = self.get_argument("p").encode("utf-8") #fetion password
         c = self.get_argument("c").encode("utf-8") #SMS content
 
-        fetion = PyFetion.PyFetion(n, p, "HTTP", debug=False)
+        fetion = NovenFetion.Fetion(n, p)
         while True:
             try:
                 fetion.login()

@@ -8,21 +8,21 @@ import logging
 class Course(object):
     '''A wrapper of the basic properties of a course.
 
-    Wrap up the basic properties of a course such as SUBJECT, GRADE, etc to
+    Wrap up the basic properties of a course such as SUBJECT, SCORE, etc to
     provide easy accessibility.
     '''
-    def __init__(self, subject=None, grade=None, point=None, term=None):
+    def __init__(self, subject=None, score=None, point=None, term=None):
         self.subject = subject   # 课程名称
-        self.grade = grade       # 课程成绩
+        self.score = score       # 课程成绩
         self.point = point       # 课程学分
         self.term = term         # 课程学期
 
     def __str__(self):
-        unic = u"%-15s\t%s\t%s" % (self.subject, self.grade, self.term)
+        unic = u"%-15s\t%s\t%s" % (self.subject, self.score, self.term)
         return unic.encode((os.name == 'posix' and 'utf-8' or 'cp936'))
-    
+
     def __unicode__(self):
-        unic = u"%-15s\t%s\t%s" % (self.subject, self.grade, self.term)
+        unic = u"%-15s\t%s\t%s" % (self.subject, self.score, self.term)
         return unic
 
 
@@ -36,13 +36,13 @@ class User(object):
         self.password = upass
         self.mobileno = mcode
         self.mobilepass = mpass
-        
+
         self.name = ''
         self.courses = {}
         self.GPA = ''
         self.rank = ''
         self.verified = False
-        
+
         # init original data (name & courses)
         self._cookie = ''
         self.get_cookie()
@@ -121,26 +121,26 @@ class User(object):
             # parse out normal course info
             if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
                 course = Course(
-                    subject=i.contents[1].string.replace(u' ', u''),
-                    grade=unicode(i.contents[3].contents[0].string),
-                    point=i.contents[11].string,
-                    term=i.contents[13].string + i.contents[15].string
+                    subject =i.contents[1].string.replace(u' ', u''),
+                    score   =unicode(i.contents[3].contents[0].string),
+                    point   =i.contents[11].string,
+                    term    =i.contents[13].string + i.contents[15].string
                 )
                 self.courses[course.term + course.subject] = course
 
             # parse out experimental course info
-            # generally do not display grade unless ranked
+            # generally do not display score unless ranked
             elif i.contents[3].get('colspan') == u'5':
                 course = Course(
-                    subject=i.contents[1].string.replace(u' ', u''),
-                    grade=u'待评价',
-                    point=u'-',
-                    term=i.contents[5].string + i.contents[7].string
+                    subject =i.contents[1].string.replace(u' ', u''),
+                    score   =u'待评价',
+                    point   =u'-',
+                    term    =i.contents[5].string + i.contents[7].string
                 )
                 self.courses[course.term + course.subject] = course
                 # print "%-2s %-35s\t%s\t%s\t%s" % tmp
 
-    def refresh(self):
+    def update(self):
         '''Compare old data with new data and return newly-released courses.'''
         pre_refresh = self.courses.copy()
         self.get_cookie()
