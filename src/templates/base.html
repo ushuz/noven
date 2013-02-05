@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<title>{% block title %}主页 - Noven{% end %}</title>
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/base.css')}}" media="all"/>
+    {% block head %}{% end %}
+</head>
+<body>
+	<div id="header">
+        <div id="logo-container">
+            <div id="logo"></div>
+        </div>
+    </div>
+    {% block body %}{% end %}
+    <div id="footer">
+        <ul>
+            <li><a href="/about">关于</a></li>
+            <li><a href="/help">帮助</a></li>
+            <li><span id="copyright">© Noven</span></li>
+        </ul>
+        
+    </div>
+</body>
+</html>

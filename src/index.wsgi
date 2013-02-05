@@ -74,6 +74,7 @@ class VerifyHandler(BaseHandler):
             "p": self.current_user.mobilepass,
             "c": (VCODE_MESSAGE_TEMPLATE % (self.current_user.name, hashlib.md5(self.get_cookie("uc")).hexdigest()[:6])).encode("utf-8")
         }
+        # for template debug
         sae.taskqueue.add_task("send_verify_sms_task", "/backend/sms", urllib.urlencode(veryinfo))
 
     def post(self):
@@ -112,7 +113,7 @@ class UpdateTaskHandler(BaseHandler):
                 continue
 
             new_courses = u.update()
-            if new_courses is not None:
+            if new_courses:
                 try:
                     self.kv.set(u.usercode, u)
                 except:
@@ -140,22 +141,24 @@ class SMSTaskHandler(BaseHandler):
                 fetion.login()
                 fetion.send_sms(c)
                 fetion.logout()
-            except PyFetion.PyFetionAuthError, e:
-                print str(e) + " when sending to " + n
+            except NovenFetion.AuthError, e:
+                print str(e)
                 return
             except Exception, e:
-                print str(e) + " when sending to " + n
+                print str(e)
                 continue
             break
 
         print "SMS sent to %s" % n
+
+    get = post
 
 
 settings = {
     'debug': True,
     "sitename": "Noven",
     "template_path": os.path.join(os.path.dirname(__file__), "templates"),
-    "static_path": os.path.join(os.path.dirname(__file__), "statics"),
+    "static_path": os.path.join(os.path.dirname(__file__), "static"),
     "xsrf_cookies": False,
     "cookie_secret": "NovWeMetAndThenIFa11emberWLY/==",
     "autoescape": None,
@@ -174,5 +177,5 @@ app = tornado.wsgi.WSGIApplication([
 
 
 kv = sae.kvdb.KVClient()
-# logging.basicConfig(format='%(asctime)s - %(levelname)-8s %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s - %(levelname)-8s %(message)s', level=logging.DEBUG)
 application = sae.create_wsgi_app(app)

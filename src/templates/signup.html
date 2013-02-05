@@ -1,17 +1,21 @@
-<!DOCTYPE HTML>
-<html lang="zh-CN">
-<head>
-	<meta charset="UTF-8">
-	<title>登记 - Noven</title>
-</head>
-<body>
-	<form action="/" method="post" >
-		{{ xsrf_form_html() }}
-		<div><label for="uc">学号：</label><input name="uc" type="text" autocomplete="off" /></div>
-		<div><label for="up">密码：</label><input name="up" type="password" /></div>
-		<div><label for="mc">手机号码：</label><input name="mc" type="text" autocomplete="off" /></div>
-		<div><label for="mp">飞信密码：</label><input name="mp" type="password" /></div>
-		<div><input type="submit" value="登记" /></div>
+{% extends base.html %}
+
+{% block title %}登记 - Noven{% end %}
+
+{% block head %}
+    <script type="text/javascript" src="http://lib.sinaapp.com/js/jquery/1.9.0/jquery.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-migrate-1.0.0.min.js"></script>
+    <script type="text/javascript" src="{{ static_url('js/signup.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/reg.css') }}" media="all"/>
+{% end %}
+
+{% block body %}
+	<form action="/" method="post" class="reg-box" >
+ 		{{ xsrf_form_html() }}
+		<div><label for="uc">学号</label><input id="uc" class="input" name="uc" type="text" maxlength="9" autocomplete="off" /></div>
+		<div><label for="up">密码</label><input id="up" class="input" name="up" type="password" /></div>
+		<div><label for="mc">手机号码</label><input id="mc" class="input" name="mc" type="text" maxlength="11" autocomplete="off" /></div>
+		<div><label for="mp">飞信密码</label><input id="mp" class="input" name="mp" type="password" /></div>
+		<div><input class="input btn" type="submit" value="登记" /></div>
 	</form>
-</body>
-</html>
+{% end %}

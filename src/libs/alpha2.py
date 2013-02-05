@@ -7,6 +7,21 @@ import functools
 import requests
 
 
+LOGIN_URL = "http://jwxt.bjfu.edu.cn/jwxt/logon.asp"
+NAME_URL = "http://jwxt.bjfu.edu.cn/jwxt/menu.asp"
+DATA_URL = "http://jwxt.bjfu.edu.cn/jwxt/Student/StudentGraduateInfo.asp"
+LOGOUT_URL = "http://jwxt.bjfu.edu.cn/jwxt/logoff.asp"
+
+def session_required(method):
+    '''Decorate methods with this to require that the session exists.'''
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        if not self._session:
+            self.login()
+        return method(self, *args, **kwargs)
+    return wrapper
+
+
 class Course(dict):
     '''A wrapper of the basic properties of a course.'''
     @property
@@ -27,6 +42,11 @@ class Course(dict):
 
 
 class User(object):
+    global LOGIN_URL
+    global LOGOUT_URL
+    global NAME_URL
+    global DATA_URL
+    
     '''Providing userful methods and storage for a user.'''
     def __init__(self, ucode, upass, mcode=None, mpass=None):
         self.usercode = ucode
@@ -71,10 +91,10 @@ class User(object):
             "UserCode"      : self.usercode,
             "UserPassword"  : self.password
         }
-        self._open("http://jwxt.bjfu.edu.cn/jwxt/logon.asp", data=payload)
+        self._open(LOGIN_URL, data=payload)
 
     def get_name(self):
-        r = self._open("http://jwxt.bjfu.edu.cn/jwxt/menu.asp")
+        r = self._open(NAME_URL)
 
         m = re.search(u'''.* MenuItem\( "注销 (.+?)", .*''', r.content.decode("gb2312"))
 
@@ -85,7 +105,7 @@ class User(object):
 
     def get_current_GPA(self):
         '''Save & return current term GPA.'''
-        r = self._open("http://jwxt.bjfu.edu.cn/jwxt/Student/StudentGraduateInfo.asp")
+        r = self._open(DATA_URL)
 
         m = re.search(u"<p>在本查询时间段，(.+?)、必修课取", r.content.decode("gb2312"))
         if m:
@@ -93,12 +113,12 @@ class User(object):
             return self.current_GPA
 
     def get_data(self):
-        '''Return newly-released courses.'''
+        '''Save & return newly-released courses.'''
         payload = {
             "order":"xn", "by":"DESC", "year":"0", "term":"0",
             "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
         }
-        r = self._open("http://jwxt.bjfu.edu.cn/jwxt/Student/StudentGraduateInfo.asp", data=payload)
+        r = self._open(DATA_URL, data=payload)
 
         data = r.content
         # import BeautifulSoup to parse the data we got
@@ -137,31 +157,21 @@ class User(object):
                     logging.info(u"A new course - %s", course.term+course.subject)
                     new_courses[course.term+course.subject] = course
 
-        # self.courses.update(new_courses)
+        self.courses.update(new_courses)
         return new_courses
 
     def update(self):
-        '''Return newly-released courses'''
+        '''Update & return newly-released courses for external call.'''
         self.login()
         new_courses = self.get_data()
-        self.courses.update(new_courses)
         logging.info(u"%d more courses released - %s" % (len(new_courses), self.name))
         self.logout()
         return new_courses
 
     def logout(self):
-        self._open("http://jwxt.bjfu.edu.cn/jwxt/logoff.asp")
+        self._open(LOGOUT_URL)
         self._session = None
 
-
-def session_required(method):
-    '''Decorate methods with this to require that the session exists.'''
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        if not self._session:
-            self.login()
-        return method(self, *args, **kwargs)
-    return wrapper
 
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s - %(levelname)-8s %(message)s", level=logging.DEBUG)

@@ -1,10 +1,14 @@
-<!DOCTYPE HTML>
-<html lang="en-US">
-<head>
-	<meta charset="UTF-8">
-	<title>登记成功 - Noven</title>
-</head>
-<body>
-	{{ current_user.name }}，您已成功登记！
-</body>
-</html>
+{% extends base.html %}
+
+{% block title %}登记成功 - Noven{% end %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/reg.css') }}" media="all"/>
+{% end %}
+
+{% block body %}
+	<div class="msg-box" >
+        <h1>登记成功</h1>
+        <p>Hello，{{ current_user.name }}！您已成功登记！</p>
+    </div>
+{% end %}

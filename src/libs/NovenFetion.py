@@ -3,6 +3,7 @@
 import json
 import requests
 
+HOST = "http://f.10086.cn"
 
 class AuthError(Exception):
     '''Wrong mobileno or password, or not logged in.'''
@@ -15,7 +16,7 @@ class ConnError(Exception):
 class Fetion(object):
     '''A simplified 3G Fetion.
     Only reserved login(), send_sms(), logout().'''
-    host = "http://f.10086.cn"
+    global HOST
 
     def __init__(self, mobile, password):
         self.mobile, self.password = mobile, password
@@ -34,13 +35,13 @@ class Fetion(object):
             "checkCodeKey"   : "null"
         }
         try:
-            r = self.session.post(self.host+"/im5/login/loginHtml5.action", data=login_payload)
+            r = self.session.post(HOST+"/im5/login/loginHtml5.action", data=login_payload)
         except:
-            raise ConnError("%11s - ConnError: Login" % self.mobile)
+            raise ConnError("%s - ConnError: Login" % self.mobile)
 
         self.id = json.loads(r.text)["idUser"]
         if not self.id:
-            raise AuthError("%11s - AuthError: Wrong Mobile or Password" % self.mobile)
+            raise AuthError("%s - AuthError: Wrong Mobile or Password" % self.mobile)
 
     def send_sms(self, msg):
         '''/im5/chat/sendNewGroupShortMsg.action
@@ -51,7 +52,7 @@ class Fetion(object):
                0    - 发送失败
                200  - 发送成功'''
         if not self.id:
-            raise AuthError("%11s - AuthError: Not Logged In" % self.mobile)
+            raise AuthError("%s - AuthError: Not Logged In" % self.mobile)
 
         msg_payload = {
             "msg"       : msg,
@@ -59,16 +60,16 @@ class Fetion(object):
         }
 
         try:
-            r = self.session.post(self.host+"/im5/chat/sendNewGroupShortMsg.action", data=msg_payload)
+            r = self.session.post(HOST+"/im5/chat/sendNewGroupShortMsg.action", data=msg_payload)
         except:
-            raise ConnError("%11s - ConnError: Send SMS" % self.mobile)
+            raise ConnError("%s - ConnError: Send SMS" % self.mobile)
 
         return json.loads(r.text)["sendCode"]
 
     def logout(self):
         '''/im5/index/logoutsubmit.action'''
         try:
-            r = self.session.get(self.host+"/im5/index/logoutsubmit.action")
+            r = self.session.get(HOST+"/im5/index/logoutsubmit.action")
         except:
-            ConnError("%11s - ConnError: Logout" % self.mobile)
+            ConnError("%s - ConnError: Logout" % self.mobile)
         self.id = None
