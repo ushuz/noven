@@ -2,18 +2,17 @@
 
 {% block title %}验证 - Noven{% end %}
 
-{% block head %}
-    <script type="text/javascript" src="http://lib.sinaapp.com/js/jquery/1.9.0/jquery.min.js"></script>
+{% block head %}<script type="text/javascript" src="http://lib.sinaapp.com/js/jquery/1.9.0/jquery.min.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery-migrate-1.0.0.min.js"></script>
-    <script type="text/javascript" src="{{ static_url('js/verify.js') }}"></script>
-    <link rel="stylesheet" type="text/css" href="{{ static_url('css/reg.css') }}" media="all"/>
-{% end %}
+    <script type="text/javascript" src="{{ static_url('js/reg.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/reg.css') }}" media="all"/>{% end %}
 
-{% block body %}
-	<form action="/verify" method="post" class="reg-box">
-		{{ xsrf_form_html() }}
-        <div><label>发送至</label><div id="mobileno" class="input">{{ current_user.mobileno }}</div></div>
-		<div><label for="vcode">验证码</label><input id="vcode" class="input" name="vcode" type="text" maxlength="6"/></div>
-		<div><input class="input btn" type="submit" value="验证"/></div>
-	</form>
-{% end %}
+{% block body %}<div class="reg-box">
+    <form action="/verify" method="post">
+        {{ xsrf_form_html() }}
+        <div class="reg-item"><label>发送至</label><div id="mobileno" class="input">{{ current_user.mobileno }}</div></div>
+        <div class="reg-item"><label for="vcode">验证码</label><input id="vcode" class="input" name="vcode" type="text" maxlength="6" autocomplete="off"/></div>
+        <div class="reg-item"><label>&nbsp;</label><input class="input btn" type="submit" value="验证"/></div>
+    </form>
+    <div class="tips">&gt; 没收到验证码？<a href="/verify">刷新一下</a></div>
+</div>{% end %}

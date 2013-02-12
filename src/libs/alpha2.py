@@ -46,13 +46,18 @@ class User(object):
     global LOGOUT_URL
     global NAME_URL
     global DATA_URL
-    
+
     '''Providing userful methods and storage for a user.'''
-    def __init__(self, ucode, upass, mcode=None, mpass=None):
+    def __init__(self, ucode, upass, mcode=None, mpass=None, wid=None):
         self.usercode = ucode
         self.password = upass
         self.mobileno = mcode
         self.mobilepass = mpass
+        
+        # Weixin id, set for weixin support
+        self.wx_id = wid
+        # This will be returned to queries from weixin
+        self.wx_push = {}
 
         self.name = None
         self.courses = {}
@@ -65,16 +70,12 @@ class User(object):
 
         self.login()
         self.get_name()
-        if self.name:
-            self.get_data()
-            self.logout()
+        self.logout()
 
     @session_required
     def _open(self, url, data=None):
-        '''Loop until successfully response.'''
-        o = self._session.get
-        if data:
-            o = self._session.post
+        '''Loop until a response got.'''
+        o = self._session.post if data else self._session.get
 
         while True:
             try:
@@ -96,8 +97,8 @@ class User(object):
     def get_name(self):
         r = self._open(NAME_URL)
 
-        m = re.search(u'''.* MenuItem\( "注销 (.+?)", .*''', r.content.decode("gb2312"))
-
+        pattern = u'''.* MenuItem\( "注销 (.+?)", .*'''
+        m = re.search(pattern, r.content.decode("gb2312"))
         if m:
             self.name = m.groups()[0]
             logging.info('Name got - %s' % self.name)
@@ -107,29 +108,31 @@ class User(object):
         '''Save & return current term GPA.'''
         r = self._open(DATA_URL)
 
-        m = re.search(u"<p>在本查询时间段，(.+?)、必修课取", r.content.decode("gb2312"))
+        pattern = u"<p>在本查询时间段，你的学分积为(.+?)、必修课取"
+        m = re.search(pattern, r.content.decode("gb2312"))
         if m:
-            self.current_GPA = u"本学期" + m.groups()[0]
+            self.current_GPA = m.groups()[0]
             return self.current_GPA
 
     def get_data(self):
-        '''Save & return newly-released courses.'''
+        '''Save & return newly-released courses and save rank, current GPA & all terms GPA.'''
         payload = {
             "order":"xn", "by":"DESC", "year":"0", "term":"0",
             "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
         }
         r = self._open(DATA_URL, data=payload)
 
-        data = r.content
         # import BeautifulSoup to parse the data we got
         from BeautifulSoup import BeautifulSoup
-        soup = BeautifulSoup(data)
+        soup = BeautifulSoup(r.content)
 
         l = soup.findAll('tr', height='25')
         # save the GPA & rank calculated by JWXT
-        self.GPA = u"全学程" + l[-3].contents[1].contents[1].string.split(u"，")[1].split(u"、")[0]
+        self.GPA = l[-3].contents[1].contents[1].string.split(u"，")[1].split(u"、")[0][6:]
         self.get_current_GPA()
-        self.rank = l[-1].contents[1].contents[2].string if u"全学程" in l[-1].contents[1].contents[2].string else l[-1].contents[1].contents[3].string
+        self.rank = l[-1].contents[1].contents[2].string[5:] \
+                    if u"全学程" in l[-1].contents[1].contents[2].string \
+                    else l[-1].contents[1].contents[3].string[5:]
 
         del l[0]    # 删除冗余数据
         del l[-4:]  # 删除冗余数据
@@ -154,11 +157,17 @@ class User(object):
                     term    = i.contents[5].string + i.contents[7].string
                 )
             if course.term + course.subject not in self.courses.keys():
-                    logging.info(u"A new course - %s", course.term+course.subject)
-                    new_courses[course.term+course.subject] = course
+                logging.info(u"A new course - %s", course.term+course.subject)
+                new_courses[course.term+course.subject] = course
 
+        # save newly-released courses
         self.courses.update(new_courses)
         return new_courses
+
+    def init_data(self):
+        self.login()
+        self.get_data()
+        self.logout()
 
     def update(self):
         '''Update & return newly-released courses for external call.'''
@@ -176,6 +185,7 @@ class User(object):
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s - %(levelname)-8s %(message)s", level=logging.DEBUG)
     logging.info("Initializing")
+    u.get_data()
     # for k, v in u.courses.items():
         # print k, v
     # print "user init done"

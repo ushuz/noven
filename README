@@ -6,15 +6,19 @@
 ##TODO
 *   微信支持
 *   增加admin管理kvdb等
-*   分离handlers
+*   个人页面
 
 
-##Credit
+##CREDIT
 ###PyFetion
 *   Author: cocobear
 *   License: MIT
 *   Website: <http://code.google.com/p/pytool>
 
+###Requests
+
+###BeautifulSoup
+
 
 ##THX
-猴子、小胖、小白、小2B、司音姐姐
+猴子、小胖、小白、小2B、司音姐姐、骚哥

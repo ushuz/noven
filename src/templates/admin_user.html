@@ -1,0 +1,43 @@
+{% extends base.html %}
+
+{% block title %}Detail - Noven Admin{% end %}
+
+{% block head %}<script type="text/javascript" src="http://lib.sinaapp.com/js/jquery/1.9.0/jquery.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-migrate-1.0.0.min.js"></script>
+    <script type="text/javascript" src="{{ static_url('js/admin.js') }}"></script>{% end %}
+
+{% block body %}<div style="text-align:center;color:white;">
+<h1>{{ user.usercode }} - {{ user.name }}</h1>
+<table style="margin:auto;">
+<tr>
+    <th>mobileno</th>
+    <th>verified</th>
+    <th>current_GPA</th>
+    <th>GPA</th>
+    <th>rank</th>
+    <th>weixin id</th>
+</tr>
+<tr>
+    <td>{{ user.mobileno }}</td>
+    <td>{{ user.verified }}</td>
+    <td>{{ user.current_GPA }}</td>
+    <td>{{ user.GPA }}</td>
+    <td>{{ user.rank }}</td>
+    <td>{{ user.wx_id }}</td>
+</tr>
+</table>
+<table style="margin:auto;">
+<tr>
+    <th>subject</th>
+    <th>score</th>
+    <th>point</th>
+    <th>term</th>
+</tr>
+{% for c in courses %}<tr>
+    <td>{{ c.subject }}</td>
+    <td>{{ c.score }}</td>
+    <td>{{ c.point }}</td>
+    <td>{{ c.term }}</td>
+</tr>{% end %}
+</table>
+</div>{% end %}

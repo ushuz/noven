@@ -2,20 +2,13 @@
 
 {% block title %}抱歉 - Noven{% end %}
 
-{% block head %}
-    <link rel="stylesheet" type="text/css" href="{{ static_url('css/reg.css') }}" media="all"/>
-{% end %}
+{% block head %}{% end %}
 
-{% block body %}
-	<div class="msg-box">
+{% block body %}<div class="msg-box">
         <h1>出错了！</h1>
         <p>{{ error }}</p>
         <br/>
         <br/>
         <br/>
-        <a href="/">点击返回</a>
-    </div>
-{% end %}
-
-
-	
+        <a href="/">返回</a>
+    </div>{% end %}

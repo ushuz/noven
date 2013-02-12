@@ -1,0 +1,77 @@
+.reg-box {
+    color: white;
+    padding-top: 60px;
+    height: 420px;
+    width: 540px;
+    margin: auto;
+}
+
+.reg-box form {
+    width: 65%;
+    float: left;
+}
+
+.reg-item {
+    margin: 18px auto;
+}
+
+.reg-box label {
+    text-align: right;
+    width: 60px;
+    line-height: 30px;
+    vertical-align: middle;
+    display: inline-block;
+    float: left;
+    margin-right: 20px;
+}
+
+.input{
+    width: 180px;
+    height: 18px;
+    padding: 5px;
+    border-radius: 2px;
+    border: 1px solid #CCC;
+}
+
+.btn{
+    width:192px;
+    background:grey;
+    border:none;
+    color:white;
+    height:30px;
+}
+
+.btnValid {
+    background-color: #cd2405;
+}
+
+#mobileno {
+    display: inline-block;
+    border: 0;
+    color: white;
+    font-size: 16px;
+}
+
+.msg-box {
+    text-align: left;
+    color: white;
+    padding-top: 60px;
+    height: 420px;
+    width: 540px;
+    margin: auto;
+}
+
+.msg-box a {
+    text-decoration: none;
+    color: white;
+    font-size: 12px;
+}
+
+.tips {
+    width: 35%;
+    float: right;
+    text-align: left;
+    padding-top: 20px;
+    font-size: 12px;
+    color: white;
+}
