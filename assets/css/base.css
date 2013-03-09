@@ -44,6 +44,7 @@ a:hover {
     width: 540px;
     border-top: 1px solid #606060;
     height: 35px;
+    margin-top: 10px;
 }
 
 #footer ul {
@@ -51,6 +52,7 @@ a:hover {
     width: 200px;
     float: right;
     text-align: right;
+    margin-top: 8px;
 }
 
 #footer ul li {

@@ -12,6 +12,7 @@ NAME_URL = "http://jwxt.bjfu.edu.cn/jwxt/menu.asp"
 DATA_URL = "http://jwxt.bjfu.edu.cn/jwxt/Student/StudentGraduateInfo.asp"
 LOGOUT_URL = "http://jwxt.bjfu.edu.cn/jwxt/logoff.asp"
 
+
 def session_required(method):
     '''Decorate methods with this to require that the session exists.'''
     @functools.wraps(method)
@@ -42,21 +43,19 @@ class Course(dict):
 
 
 class User(object):
+    u'''Providing userful methods and storage for a user.'''
     global LOGIN_URL
     global LOGOUT_URL
     global NAME_URL
     global DATA_URL
 
-    '''Providing userful methods and storage for a user.'''
     def __init__(self, ucode, upass, mcode=None, mpass=None, wid=None):
         self.usercode = ucode
         self.password = upass
         self.mobileno = mcode
         self.mobilepass = mpass
-        
-        # Weixin id, set for weixin support
+
         self.wx_id = wid
-        # This will be returned to queries from weixin
         self.wx_push = {}
 
         self.name = None
@@ -122,24 +121,24 @@ class User(object):
         }
         r = self._open(DATA_URL, data=payload)
 
-        # import BeautifulSoup to parse the data we got
+        # Import BeautifulSoup to deal with the data we got.
         from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(r.content)
 
         l = soup.findAll('tr', height='25')
-        # save the GPA & rank calculated by JWXT
+        # Save the GPA & rank calculated by JWXT.
         self.GPA = l[-3].contents[1].contents[1].string.split(u"，")[1].split(u"、")[0][6:]
         self.get_current_GPA()
         self.rank = l[-1].contents[1].contents[2].string[5:] \
-                    if u"全学程" in l[-1].contents[1].contents[2].string \
-                    else l[-1].contents[1].contents[3].string[5:]
+            if u"全学程" in l[-1].contents[1].contents[2].string \
+            else l[-1].contents[1].contents[3].string[5:]
 
         del l[0]    # 删除冗余数据
         del l[-4:]  # 删除冗余数据
 
         new_courses = {}
         for i in l:
-            # normal courses
+            # Normal courses
             if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
                 course = Course(
                     subject = i.contents[1].string.replace(u' ', u''),
@@ -147,8 +146,8 @@ class User(object):
                     point   = i.contents[11].string,
                     term    = i.contents[13].string + i.contents[15].string
                 )
-            # practical courses
-            # generally do not display score unless ranked
+            # Practical courses
+            # Generally do not display scores unless been ranked.
             elif i.contents[3].get('colspan') == u'5':
                 course = Course(
                     subject = i.contents[1].string.replace(u' ', u''),
@@ -160,7 +159,7 @@ class User(object):
                 logging.info(u"A new course - %s", course.term+course.subject)
                 new_courses[course.term+course.subject] = course
 
-        # save newly-released courses
+        # Save newly-released courses.
         self.courses.update(new_courses)
         return new_courses
 

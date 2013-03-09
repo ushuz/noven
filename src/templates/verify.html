@@ -11,7 +11,7 @@
     <form action="/verify" method="post">
         {{ xsrf_form_html() }}
         <div class="reg-item"><label>发送至</label><div id="mobileno" class="input">{{ current_user.mobileno }}</div></div>
-        <div class="reg-item"><label for="vcode">验证码</label><input id="vcode" class="input" name="vcode" type="text" maxlength="6" autocomplete="off"/></div>
+        <div class="reg-item"><label for="vcode">验证码</label><input id="vcode" class="input" name="vcode" type="text" maxlength="6" autocomplete="off" autofocus="autofocus"/></div>
         <div class="reg-item"><label>&nbsp;</label><input class="input btn" type="submit" value="验证"/></div>
     </form>
     <div class="tips">&gt; 没收到验证码？<a href="/verify">刷新一下</a></div>

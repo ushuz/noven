@@ -22,7 +22,7 @@
     <th>weixin id</th>
 </tr>
 {% for user in userlist %}<tr>
-    <td><input type="checkbox" name="to" value="{{ user.usercode }}"/></td>
+    <td><input type="checkbox" name="uc" value="{{ user.usercode }}"/></td>
     <td>{{ user.name }}</td>
     <td><a href="/admin/user/{{ user.usercode }}">{{ user.usercode }}</a></td>
     <td>{{ user.mobileno }}</td>
@@ -34,7 +34,9 @@
     <td>{{ user.wx_id }}</td>
 </tr>{% end %}
 </table>
-<div><textarea name="msg" cols="30" rows="3"></textarea></div>
-<div><input formaction="/admin/msg" type="submit" value="发送"/></div>
+<div class="msg-ctrl">
+    <div><textarea name="msg" cols="50" rows="3"></textarea></div>
+    <div><input formaction="/admin/msg" type="submit" value="发送"/></div>
+</div>
 </form>
 </div>{% end %}

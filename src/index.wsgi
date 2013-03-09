@@ -1,10 +1,10 @@
 # -*- coding:utf-8 -*-
 
-import sae
-import tornado.wsgi
-
 import os
 import logging
+
+import sae
+import tornado.wsgi
 
 #import handlers
 import noven    # main logic
@@ -12,7 +12,7 @@ import admin    # administration
 
 
 settings = {
-    'debug': True,
+    "debug": False,
     "sitename": "Noven",
     "template_path": os.path.join(os.path.dirname(__file__), "templates"),
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
@@ -34,7 +34,7 @@ app = tornado.wsgi.WSGIApplication([
     
     (r"/backend/update", noven.UpdateTaskHandler),
     (r"/backend/sms", noven.SMSTaskHandler),
-    (r"/backend/upgrade", noven.UpgradeHandler),
+    # (r"/backend/upgrade", noven.UpgradeHandler),
 
     (r"/admin", admin.Main),
     (r"/admin/user/([0-9]*)", admin.UsersManagement),

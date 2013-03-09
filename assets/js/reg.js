@@ -13,5 +13,8 @@ var checkForm = function() {
 };
 
 $(document).ready(function(){
-    
+    $("#mc").bind("keypress", digitOnly);
+    $("#uc").bind("keypress", digitOnly);
+    $("form").bind("submit", checkForm);
+    $("form").bind("keyup", function() {if (checkForm()) {$(".btn").addClass("btnValid");} else {$(".btn").removeClass("btnValid");}});
 });

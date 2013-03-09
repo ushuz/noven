@@ -1,6 +1,10 @@
 name: Noven
 version: 1
 
+libraries:
+- name: tornado
+  version: "2.4.1"
+
 cron:
 - description: check new courses
   url: backend/update

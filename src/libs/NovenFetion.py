@@ -5,6 +5,7 @@ import requests
 
 HOST = "http://f.10086.cn"
 
+
 class AuthError(Exception):
     '''Wrong mobileno or password, or not logged in.'''
 
