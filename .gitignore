@@ -167,5 +167,21 @@ pip-log.txt
 ## SAE
 #############
 
-#dev_server.py compiled files
+# dev_server.py compiled files
 *.wsgic
+
+#############
+## Noven
+#############
+
+# Bundled source
+src.zip
+
+# Test DB
+kv.db
+
+# Bundle script
+zip.bat
+
+# Static for online
+static

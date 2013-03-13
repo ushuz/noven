@@ -69,7 +69,6 @@ tornado.web.ErrorHandler = ErrorHandler
 
 
 # Main handlers
-
 class SignupHandler(BaseHandler):
     def get(self):
         self.render("signup.html", total=self.kv.get_info()["total_count"])
@@ -89,7 +88,7 @@ class SignupHandler(BaseHandler):
             userinfo["mpass"]
         )
         if new_user.name:
-            # set() only takes str as key, WTF!
+            # `set()` only takes str as key, WTF!
             # As a result, we have to encode the KEY 'cause it is unicode.'
             self.kv.set(new_user.usercode.encode("utf-8"), new_user)
             self.redirect("/verify")
@@ -144,8 +143,11 @@ class SorryHandler(BaseHandler):
         self.render("sorry.html", error = error)
 
 
+# Task handlers
 class UpdateTaskHandler(BaseHandler):
     def get(self):
+        # As `get_by_prefix()` has a default max return limit(100), remember
+        # to update limit when our user amount gets too large. 
         userlist = [ut[1] for ut in self.kv.get_by_prefix("") if isinstance(ut[1], alpha.User)]
         for u in userlist:
             if not u.verified or not u.name:
@@ -155,7 +157,7 @@ class UpdateTaskHandler(BaseHandler):
             new_courses = u.update()
 
             if new_courses:
-                # If `u.wx_id` exists, sms should not be sent. Instead, we
+                # If `u.wx_id` exists, sms should not be sent.  Instead, we
                 # update `u.wx_push` with `new_courses` so that we can return
                 # it when users performs a score query by Weixin.
                 if u.wx_id:
@@ -239,7 +241,7 @@ class WxHandler(BaseHandler):
 
         # Score query logic.
         # Score query supposes to be the most frequent action when noven goes
-        # online. Score query logic goes first in order to save IF compute.
+        # online.  Score query logic goes first in order to save IF compute.
         if isinstance(msg, NovenWx.QueryMessage):
             uc = self.kv.get(msg.fr.encode("utf-8"))
             if uc:
@@ -277,10 +279,14 @@ class WxHandler(BaseHandler):
                 )
                 if u.name:
                     u.verified = True
+                    # `u.init_data()` takes time to finish, and it is likely
+                    # to exceed 5s time limit for a Weixin reply.  I can't
+                    # find a solution right now, may there will be one later.
                     u.init_data()
 
             if u.verified:
-                self.kv.set(u.usercode.encode("utf-8"), u)    # set() only takes str as key, WTF!
+                # `set()` only takes str as key, WTF!
+                self.kv.set(u.usercode.encode("utf-8"), u)
                 self.kv.set(msg.fr.encode("utf-8"), u.usercode.encode("utf-8"))
                 self.reply(msg, WX_SIGNUP_SUCC % (u.name, u.GPA, u.rank, len(u.courses)))
                 return
@@ -293,9 +299,9 @@ class WxHandler(BaseHandler):
 
     def check_xsrf_cookie(self):
         # POSTs are made by Tencent servers, so XSRF COOKIE doesn't exist.
-        # Checking XSRF COOKIE becomes unnecessary under such condition. While
-        # Weixin has offered a way to authenticate the POSTs, which can be
-        # implemented here later if it is needed.
+        # Checking XSRF COOKIE becomes unnecessary under such condition.
+        # While Weixin has offered a way to authenticate the POSTs, which
+        # can be implemented here later if it is needed.
         pass
 
     def reply(self, received, content):
