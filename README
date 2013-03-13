@@ -7,7 +7,6 @@
 *   增加admin管理kvdb等
 *   个人页面
 *   摸索下怎么搞测试
-*   改善UPDATE逻辑由全体同步更新改为逐个taskqueue
 
 
 ##CREDIT

@@ -146,34 +146,53 @@ class SorryHandler(BaseHandler):
 # Task handlers
 class UpdateTaskHandler(BaseHandler):
     def get(self):
-        # As `get_by_prefix()` has a default max return limit(100), remember
+        # As `getkeys_by_prefix()` has a default max return limit(100), remember
         # to update limit when our user amount gets too large. 
-        userlist = [ut[1] for ut in self.kv.get_by_prefix("") if isinstance(ut[1], alpha.User)]
-        for u in userlist:
-            if not u.verified or not u.name:
-                continue
+        uclist = [uc for uc in self.kv.getkeys_by_prefix("") if len(uc) == 9]
+        for uc in uclist:
+            payload = {
+                "uc": uc
+            }
+            sae.taskqueue.add_task("update_queue", "/backend/update", urllib.urlencode(payload))
 
-            # alpha.DATA_URL = "http://127.0.0.1:8888/data"
-            new_courses = u.update()
+    def post(self):
+        uc = self.get_argument("uc", None)
+        if not uc:
+            print "Update Error: can't get argument `uc`."
+            return
+        
+        u = self.kv.get(uc.encode("utf-8"))
+        if not u or not u.verified or not u.name:
+            print "Update Error: can't get `u` from KVDB."
+            return
 
-            if new_courses:
-                # If `u.wx_id` exists, sms should not be sent.  Instead, we
-                # update `u.wx_push` with `new_courses` so that we can return
-                # it when users performs a score query by Weixin.
-                if u.wx_id:
-                    u.wx_push.update(new_courses)
-                    self.kv.set(u.usercode.encode("utf-8"), u)
-                    continue
+        alpha.DATA_URL = "http://127.0.0.1:8888/data"
+        new_courses = u.update()
 
+        if new_courses:
+            # If `u.wx_id` exists, sms should not be sent.  Instead, we
+            # update `u.wx_push` with `new_courses` so that we can return
+            # it when users performs a score query by Weixin.
+            if u.wx_id:
+                u.wx_push.update(new_courses)
                 self.kv.set(u.usercode.encode("utf-8"), u)
-                tosend = u"、".join([u"%s(%s)" % (v.subject, v.score) for v in new_courses.values()])
+                return
 
-                noteinfo = {
-                    "n": u.mobileno,
-                    "p": u.mobilepass,
-                    "c": (NEW_COURSES_TPL % (u.name, len(new_courses), tosend, u.current_GPA, u.GPA, u.rank)).encode("utf-8")
-                }
-                sae.taskqueue.add_task("send_notification_sms_task", "/backend/sms", urllib.urlencode(noteinfo))
+            self.kv.set(u.usercode.encode("utf-8"), u)
+            tosend = u"、".join([u"%s(%s)" % (v.subject, v.score) for v in new_courses.values()])
+
+            noteinfo = {
+                "n": u.mobileno,
+                "p": u.mobilepass,
+                "c": (NEW_COURSES_TPL % (u.name, len(new_courses), tosend, u.current_GPA, u.GPA, u.rank)).encode("utf-8")
+            }
+            sae.taskqueue.add_task("send_notification_sms_task", "/backend/sms", urllib.urlencode(noteinfo))
+    
+    def check_xsrf_cookie(self):
+        # Taskqueue will POST to this url.  There is no need to check XSRF
+        # in this case as the only argument is `uc` which is used to get a
+        # user in KVDB and won't cause any trouble.
+        pass
 
 
 class SMSTaskHandler(BaseHandler):
