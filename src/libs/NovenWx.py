@@ -18,25 +18,37 @@ def parse(xmlstring):
         if type == u"text":
             # If Chinese characters exist, xml.etree.cElementTree will auto-
             # matically decode the contents and return unicode when invoking
-            # Element.text. So we use built-in function unicode() here.
+            # Element.text.  So we use built-in function unicode() to cover
+            # various inputs.
             content = unicode(et.find("Content").text)
 
+            # Old API will be deprecated since 20130326.  As a result we have
+            # to change some logics and the following way of notifying A NEW
+            # FOLLOWER should be no longer valid.  But we keep it here just in
+            # case and it won't cost much.
             if content == u"Hello2BizUser":
-                # hello message
-                # a help message should be returned at last
+                # A new follower.
+                # A guide message should be returned at last.
                 return HelloMessage(to, fr, time)
 
-            elif content.split()[0].lower() == u"zc":
-                # sign up through weixin
-                # take down uc & up for later usage
+            if content.split()[0].lower() == u"zc":
+                # Users are signing up through weixin.  In such case, we
+                # should take down `uc` & `up` for later usage.
                 try:
                     uc, up = content.split()[1:]
                 except ValueError:
                     return QueryMessage(to, fr, time)
                 return SignupMessage(to, fr, time, uc, up)
 
+        if type == u"event":
+            # API changed since 20130326, WTF!
+            # If we get a new follower, an event msg will be pushed to our
+            # server of which `MsgType` is `event`.
+            return HelloMessage(to, fr, time)
+
         return QueryMessage(to, fr, time)
 
+        # `MsgId` is of no use at present.
         # id = et.find("MsgId").text.decode("utf-8")
     except Exception, e:
         print e

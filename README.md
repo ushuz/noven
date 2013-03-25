@@ -16,9 +16,15 @@
 *   Website: <http://code.google.com/p/pytool>
 
 ###Requests
+*   Author: Kenneth Reitz
+*   License: Apache License, Version 2.0
+*   Website: <http://python-requests.org>
 
 ###BeautifulSoup
+*   Author: Leonard Richardson
+*   License: BSD
+*   Website: <http://www.crummy.com/software/BeautifulSoup/>
 
 
 ##THX
-猴子、小胖、小白、小2B、司音姐姐、骚哥
+猴子、小胖、小白、小2B、司音姐姐、骚哥、兆子
