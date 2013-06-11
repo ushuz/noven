@@ -8,4 +8,4 @@ libraries:
 cron:
 - description: check new courses
   url: backend/update
-  schedule: "* */2 14-31 1 *"
+  schedule: "2 6-22/4 * 6-7 *"

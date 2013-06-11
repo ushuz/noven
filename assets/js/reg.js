@@ -1,4 +1,7 @@
+// With digitOnly() users shall only input digits in UserCode & MobileNo fields.
 var digitOnly = function(event) {return (/[\d]/.test(String.fromCharCode(event.keyCode)))};
+
+// Validate submit data.
 var checkForm = function() {
     if (String($("form")[0].action).indexOf("verify") == -1) {
         if ($("#uc").val().length!=9 || $("#mc").val().length!=11 || $("#up").val().length==0 || $("#mp").val().length==0) {
@@ -12,6 +15,7 @@ var checkForm = function() {
     return true;
 };
 
+// Binding events with functions.
 $(document).ready(function(){
     $("#mc").bind("keypress", digitOnly);
     $("#uc").bind("keypress", digitOnly);

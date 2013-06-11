@@ -158,12 +158,12 @@ class UpdateTaskHandler(BaseHandler):
     def post(self):
         uc = self.get_argument("uc", None)
         if not uc:
-            print "Update Error: can't get argument `uc`."
+            print "Update Error: missing argument: `uc`."
             return
         
         u = self.kv.get(uc.encode("utf-8"))
         if not u or not u.verified or not u.name:
-            print "Update Error: can't get `u` from KVDB."
+            print "Update Error: can't get `u` by `uc` - %s." % uc
             return
 
         alpha.DATA_URL = "http://127.0.0.1:8888/data"
@@ -260,7 +260,7 @@ class WxHandler(BaseHandler):
 
         # Score query logic.
         # Score query supposes to be the most frequent action when noven goes
-        # online.  Score query logic goes first in order to save IF compute.
+        # online.  Score query logic goes first in order to save IF computes.
         if isinstance(msg, NovenWx.QueryMessage):
             uc = self.kv.get(msg.fr.encode("utf-8"))
             if uc:
@@ -278,10 +278,15 @@ class WxHandler(BaseHandler):
                 self.reply(msg, WX_NOT_SIGNED)
                 return
 
+        # Subscribe event.
         # A new follower, return the guide.
         if isinstance(msg, NovenWx.HelloMessage):
             self.reply(msg, WX_GUIDE)
             return
+        
+        # TODO: Unsubscribe event.
+        # We can do some clean up works when users unsubscribe.  We can finish
+        # it later.
 
         # Sign up logic.
         if isinstance(msg, NovenWx.SignupMessage):

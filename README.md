@@ -7,7 +7,10 @@
 *   增加admin管理kvdb等
 *   个人页面
 *   摸索下怎么搞测试
-
+*   对成绩更新（比如实验课出分、补考出分）也进行响应
+*   收到微信unsubscribe事件时进行清理工作
+*   优化`get_data()``get_current_GPA()`
+*   deactive修改过密码的用户
 
 ##CREDIT
 ###PyFetion

@@ -177,8 +177,11 @@ class User(object):
         return new_courses
 
     def logout(self):
-        self._open(LOGOUT_URL)
+        # Accessing LOGOUT_URL may delay, remove it if it causes any trouble.
+        # Actions below are NOT necessary.
+        # self._open(LOGOUT_URL)
         self._session = None
+        pass
 
 
 if __name__ == "__main__":
