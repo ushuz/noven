@@ -18,7 +18,7 @@ def session_required(method):
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         if not self._session:
-            self.login()
+            self._login()
         return method(self, *args, **kwargs)
     return wrapper
 
@@ -67,7 +67,7 @@ class User(object):
 
         self._session = None
 
-        self.login()
+        self._login()
         self.get_name()
         self.logout()
 
@@ -83,7 +83,7 @@ class User(object):
                 continue
             return r
 
-    def login(self):
+    def _login(self):
         self._session = requests.session()
 
         payload = {
@@ -103,23 +103,23 @@ class User(object):
             logging.info('Name got - %s' % self.name)
             return self.name
 
-    def get_current_GPA(self):
-        '''Save & return current term GPA.'''
+    def get_data(self, init=False):
+        '''Save & return newly-released courses.'''
         r = self._open(DATA_URL)
 
+        # Get current term GPA.
         pattern = u"<p>在本查询时间段，你的学分积为(.+?)、必修课取"
         m = re.search(pattern, r.content.decode("gb2312"))
         if m:
             self.current_GPA = m.groups()[0]
-            return self.current_GPA
-
-    def get_data(self):
-        '''Save & return newly-released courses and save rank, current GPA & all terms GPA.'''
-        payload = {
-            "order":"xn", "by":"DESC", "year":"0", "term":"0",
-            "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
-        }
-        r = self._open(DATA_URL, data=payload)
+        
+        # If it's invoked during `init_data()`, we should fetch all terms data.
+        if init:
+            payload = {
+                "order":"xn", "by":"DESC", "year":"0", "term":"0",
+                "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
+            }
+            r = self._open(DATA_URL, data=payload)
 
         # Import BeautifulSoup to deal with the data we got.
         from BeautifulSoup import BeautifulSoup
@@ -128,7 +128,6 @@ class User(object):
         l = soup.findAll('tr', height='25')
         # Save the GPA & rank calculated by JWXT.
         self.GPA = l[-3].contents[1].contents[1].string.split(u"，")[1].split(u"、")[0][6:]
-        self.get_current_GPA()
         self.rank = l[-1].contents[1].contents[2].string[5:] \
             if u"全学程" in l[-1].contents[1].contents[2].string \
             else l[-1].contents[1].contents[3].string[5:]
@@ -164,13 +163,13 @@ class User(object):
         return new_courses
 
     def init_data(self):
-        self.login()
-        self.get_data()
+        self._login()
+        self.get_data(init=True)
         self.logout()
 
     def update(self):
         '''Update & return newly-released courses for external call.'''
-        self.login()
+        self._login()
         new_courses = self.get_data()
         logging.info(u"%d more courses released - %s" % (len(new_courses), self.name))
         self.logout()
