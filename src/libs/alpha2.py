@@ -69,13 +69,15 @@ class User(object):
 
         self._login()
         self.get_name()
-        self.logout()
+        self._logout()
 
     @session_required
     def _open(self, url, data=None):
         '''Loop until a response got.'''
         o = self._session.post if data else self._session.get
 
+        # It will return a response eventually unless the url is unreachable
+        # and the thread will be dead.
         while True:
             try:
                 r = o(url, data=data)
@@ -93,6 +95,11 @@ class User(object):
         }
         self._open(LOGIN_URL, data=payload)
 
+    def _logout(self):
+        # Session should be cleared in case of bad things.
+        self._session = None
+        pass
+
     def get_name(self):
         r = self._open(NAME_URL)
 
@@ -103,31 +110,27 @@ class User(object):
             logging.info('Name got - %s' % self.name)
             return self.name
 
-    def get_data(self, init=False):
+    def get_data(self, all=None):
         '''Save & return newly-released courses.'''
         r = self._open(DATA_URL)
 
-        # Get current term GPA.
+        # Get current term GPA & all terms GPA.
         pattern = u"<p>在本查询时间段，你的学分积为(.+?)、必修课取"
         m = re.search(pattern, r.content.decode("gb2312"))
         if m:
             self.current_GPA = m.groups()[0]
-        
-        # If it's invoked during `init_data()`, we should fetch all terms data.
-        if init:
-            payload = {
-                "order":"xn", "by":"DESC", "year":"0", "term":"0",
-                "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
-            }
-            r = self._open(DATA_URL, data=payload)
+        pattern = u"全学程你的学分积为(.+?)</p>"
+        m = re.search(pattern, r.content.decode("gb2312"))
+        if m:
+            self.GPA = m.groups()[0]
 
+        r = all if all else r
         # Import BeautifulSoup to deal with the data we got.
         from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(r.content)
 
         l = soup.findAll('tr', height='25')
-        # Save the GPA & rank calculated by JWXT.
-        self.GPA = l[-3].contents[1].contents[1].string.split(u"，")[1].split(u"、")[0][6:]
+        # Save the rank calculated by JWXT.
         self.rank = l[-1].contents[1].contents[2].string[5:] \
             if u"全学程" in l[-1].contents[1].contents[2].string \
             else l[-1].contents[1].contents[3].string[5:]
@@ -154,9 +157,12 @@ class User(object):
                     point   = u'-',
                     term    = i.contents[5].string + i.contents[7].string
                 )
-            if course.term + course.subject not in self.courses.keys():
+            if course and course.term + course.subject not in self.courses.keys():
                 logging.info(u"A new course - %s", course.term+course.subject)
                 new_courses[course.term+course.subject] = course
+
+                # In case of logging too many times.
+                course = None
 
         # Save newly-released courses.
         self.courses.update(new_courses)
@@ -164,29 +170,34 @@ class User(object):
 
     def init_data(self):
         self._login()
-        self.get_data(init=True)
-        self.logout()
+
+        # We should fetch all terms data and pass it over at first run.
+        payload = {
+            "order":"xn", "by":"DESC", "year":"0", "term":"0",
+            "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
+        }
+        r = self._open(DATA_URL, data=payload)
+        self.get_data(all=r)
+
+        self._logout()
 
     def update(self):
         '''Update & return newly-released courses for external call.'''
         self._login()
+
         new_courses = self.get_data()
         logging.info(u"%d more courses released - %s" % (len(new_courses), self.name))
-        self.logout()
-        return new_courses
 
-    def logout(self):
-        # Accessing LOGOUT_URL may delay, remove it if it causes any trouble.
-        # Actions below are NOT necessary.
-        # self._open(LOGOUT_URL)
-        self._session = None
-        pass
+        self._logout()
+        return new_courses
 
 
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s - %(levelname)-8s %(message)s", level=logging.DEBUG)
     logging.info("Initializing")
     u.get_data()
+    print u.GPA
+    print u.current_GPA
     # for k, v in u.courses.items():
         # print k, v
     # print "user init done"
