@@ -51,7 +51,6 @@ class BaseHandler(tornado.web.RequestHandler):
             self.render("sorry.html", error=error)
 
 
-# Override default error handler to display costumized error pages.
 class ErrorHandler(BaseHandler):
     def initialize(self, status_code):
         self.set_status(status_code)
@@ -61,10 +60,11 @@ class ErrorHandler(BaseHandler):
 
     def check_xsrf_cookie(self):
         # POSTs to an ErrorHandler don't actually have side effects,
-        # so we don't need to check the xsrf token.  This allows POSTs
-        # to the wrong url to return a 404 instead of 403.
+        # so we don't need to check the XSRF token.  This allows POSTs
+        # to the wrong URL to return a 404 instead of 403.
         pass
 
+# Override default error handler to display customized error pages.
 tornado.web.ErrorHandler = ErrorHandler
 
 
@@ -125,7 +125,8 @@ class WelcomeHandler(BaseHandler):
             self.render("welcome.html")
 
             u = self.current_user
-            u.init_data()
+            # Here `initialize()` could be async.
+            u.initialize()
             self.kv.set(u.usercode.encode("utf-8"), u)
             wellinfo = {
                 "n": self.current_user.mobileno,
@@ -189,7 +190,7 @@ class UpdateTaskHandler(BaseHandler):
             sae.taskqueue.add_task("send_notification_sms_task", "/backend/sms", urllib.urlencode(noteinfo))
     
     def check_xsrf_cookie(self):
-        # Taskqueue will POST to this url.  There is no need to check XSRF
+        # Taskqueue will POST to this URL.  There is no need to check XSRF
         # in this case as the only argument is `uc` which is used to get a
         # user in KVDB and won't cause any trouble.
         pass
@@ -229,7 +230,7 @@ class UpgradeHandler(BaseHandler):
         for user in userlist:
             u = alpha.User(user.usercode, user.password, user.mobileno, user.mobilepass)
             u.name, u.GPA, u.rank, u.verified = user.name, user.GPA, user.rank, user.verified
-            u.init_data()
+            u.initialize()
             self.kv.set(u.usercode.encode("utf-8"), u)
             self.write(u"<p>%s upgraded</p>" % u.usercode)
 
@@ -303,10 +304,10 @@ class WxHandler(BaseHandler):
                 )
                 if u.name:
                     u.verified = True
-                    # `u.init_data()` takes time to finish, and it is likely
+                    # `u.initialize()` takes time to finish, and it is likely
                     # to exceed 5s time limit for a Weixin reply.  I can't
                     # find a solution right now, may there will be one later.
-                    u.init_data()
+                    u.initialize()
 
             if u.verified:
                 # `set()` only takes str as key, WTF!

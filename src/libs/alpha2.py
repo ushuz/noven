@@ -14,7 +14,7 @@ LOGOUT_URL = "http://jwxt.bjfu.edu.cn/jwxt/logoff.asp"
 
 
 def session_required(method):
-    '''Decorate methods with this to require that the session exists.'''
+    """Decorate methods with this to require that the session exists."""
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         if not self._session:
@@ -24,7 +24,7 @@ def session_required(method):
 
 
 class Course(dict):
-    '''A wrapper of the basic properties of a course.'''
+    """A wrapper of the basic properties of a course."""
     @property
     def subject(self):
         return self[u"subject"]
@@ -43,7 +43,7 @@ class Course(dict):
 
 
 class User(object):
-    u'''Providing userful methods and storage for a user.'''
+    """Providing userful methods and storage for a user."""
     global LOGIN_URL
     global LOGOUT_URL
     global NAME_URL
@@ -73,11 +73,13 @@ class User(object):
 
     @session_required
     def _open(self, url, data=None):
-        '''Loop until a response got.'''
+        """Loop until a response got.
+
+        It will return a response eventually unless the URL is unreachable and
+        the thread will be dead.
+        """
         o = self._session.post if data else self._session.get
 
-        # It will return a response eventually unless the url is unreachable
-        # and the thread will be dead.
         while True:
             try:
                 r = o(url, data=data)
@@ -101,30 +103,35 @@ class User(object):
         pass
 
     def get_name(self):
+        """Save and return the user's true name."""
         r = self._open(NAME_URL)
 
-        pattern = u'''.* MenuItem\( "注销 (.+?)", .*'''
+        pattern = u""".* MenuItem\( "注销 (.+?)", .*"""
         m = re.search(pattern, r.content.decode("gb2312"))
         if m:
             self.name = m.groups()[0]
-            logging.info('Name got - %s' % self.name)
+            logging.info("Name got - %s" % self.name)
             return self.name
 
-    def get_data(self, all=None):
-        '''Save & return newly-released courses.'''
-        r = self._open(DATA_URL)
+    def get_GPA(self, r, all=False):
+        """Save and return all-term GPA or current-term GPA respectly.
 
-        # Get current term GPA & all terms GPA.
+        If `all` is `True`, the result will be saved to `GPA`. Otherwise, the
+        result will be saved to `current_GPA`.
+        """
         pattern = u"<p>在本查询时间段，你的学分积为(.+?)、必修课取"
         m = re.search(pattern, r.content.decode("gb2312"))
         if m:
-            self.current_GPA = m.groups()[0]
-        pattern = u"全学程你的学分积为(.+?)</p>"
-        m = re.search(pattern, r.content.decode("gb2312"))
-        if m:
-            self.GPA = m.groups()[0]
+            if all:
+                self.GPA = m.group(1)
+                logging.info("GPA got - %s" % self.GPA)
+                return self.GPA
+            else:
+                self.current_GPA = m.group(1)
+                logging.info("current_GPA got - %s" % self.current_GPA)
+                return self.current_GPA
 
-        r = all if all else r
+    def get_courses(self, r):
         # Import BeautifulSoup to deal with the data we got.
         from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(r.content)
@@ -140,7 +147,7 @@ class User(object):
 
         new_courses = {}
         for i in l:
-            # Normal courses
+            # Normal cases.
             if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
                 course = Course(
                     subject = i.contents[1].string.replace(u' ', u''),
@@ -148,8 +155,9 @@ class User(object):
                     point   = i.contents[11].string,
                     term    = i.contents[13].string + i.contents[15].string
                 )
-            # Practical courses
-            # Generally do not display scores unless been ranked.
+            # Special cases.
+            # If the course is released before Rating System being closed,
+            # score will not be displayed.
             elif i.contents[3].get('colspan') == u'5':
                 course = Course(
                     subject = i.contents[1].string.replace(u' ', u''),
@@ -157,36 +165,54 @@ class User(object):
                     point   = u'-',
                     term    = i.contents[5].string + i.contents[7].string
                 )
-            if course and course.term + course.subject not in self.courses.keys():
-                logging.info(u"A new course - %s", course.term+course.subject)
-                new_courses[course.term+course.subject] = course
 
-                # In case of logging too many times.
-                course = None
+            key = course.term + course.subject
+            if key not in self.courses.keys() and key not in new_courses.keys():
+                logging.info(u"A new course - %s", key)
+                new_courses[key] = course
 
         # Save newly-released courses.
         self.courses.update(new_courses)
         return new_courses
 
-    def init_data(self):
+    def initialize(self):
         self._login()
 
-        # We should fetch all terms data and pass it over at first run.
+        # Initializing data.
+        # Get `courses` and `GPA`
         payload = {
             "order":"xn", "by":"DESC", "year":"0", "term":"0",
             "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
         }
         r = self._open(DATA_URL, data=payload)
-        self.get_data(all=r)
+        self.get_GPA(r, True)
+        self.get_courses(r)
+
+        # Get `current_GPA`
+        r = self._open(DATA_URL)
+        self.get_GPA(r)
 
         self._logout()
 
     def update(self):
-        '''Update & return newly-released courses for external call.'''
+        """Update & return newly-released courses for external call."""
         self._login()
 
-        new_courses = self.get_data()
+        # Get `new_courses`
+        r = self._open(DATA_URL)
+
+        new_courses = self.get_courses(r)
         logging.info(u"%d more courses released - %s" % (len(new_courses), self.name))
+
+        # Only if we got new courses should we update GPAs.
+        if new_courses:
+            self.get_GPA(r)
+            payload = {
+            "order":"xn", "by":"DESC", "year":"0", "term":"0",
+            "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
+            }
+            r = self._open(DATA_URL, data=payload)
+            self.get_GPA(r, True)
 
         self._logout()
         return new_courses
@@ -194,10 +220,11 @@ class User(object):
 
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s - %(levelname)-8s %(message)s", level=logging.DEBUG)
-    logging.info("Initializing")
-    u.get_data()
+    # u.get_data()
     print u.GPA
     print u.current_GPA
+    u.update()
+    print len(u.courses)
     # for k, v in u.courses.items():
         # print k, v
     # print "user init done"
