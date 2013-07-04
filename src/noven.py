@@ -262,7 +262,7 @@ class WxHandler(BaseHandler):
     def post(self):
         msg = NovenWx.parse(self.request.body)
 
-        # print type(msg)
+        print msg.fr
 
         # Score query logic.
         # Score query supposes to be the most frequent action when noven goes
