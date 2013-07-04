@@ -238,8 +238,13 @@ class UpgradeHandler(BaseHandler):
 WX_SIGNUP_FAIL = u'''Sorry，登记失败了！请检查学号、密码是否输入有误。'''
 WX_SIGNUP_SUCC = u'''Hello，%s！全学程您的学分积为%s，%s，共修过%d门课。加油！'''
 WX_GUIDE = u"\r\n".join([u"欢迎通过微信使用Noven！",
+                         u"",
+                         u"这是为无法使用飞信的同学而特别准备的。若您是飞信用户，"
+                         u"欢迎到Noven网站登记：noven.sinaapp.com，如有新课程出分将自动短信通知，更加方便快捷。",
+                         u"",
                          u"登记：发送“ZC 学号 密码”（请用空格隔开，不包括引号）",
                          u"查询：登记后发送任意内容即可查询最近出分状况",
+                         u"",
                          u"若您已在网站登记，微信登记后短信通知将随即终止"])
 WX_NO_UPDATE = u'''Hello，%s！最近没有新课程出分。当前学期您的学分积为%s，全学程您的学分积为%s，%s。'''
 WX_NEW_RELEASE = u'''Hello，%s！有%d门课出分了：%s。当前学期您的学分积为%s，全学程您的学分积为%s，%s。'''

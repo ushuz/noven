@@ -1,17 +1,21 @@
-﻿#Noven
+#Noven
 
 搭建在SAE，自动刷新BJFU的JWXT，新课程出分之后飞信通知用户，或通过微信快速查询。
 
 
 ##TODO
-* [ ] 增加admin管理kvdb等
+* [!] RESTful
+* [ ] 优化微信的注册流程
+* [ ] Better Log
+* [ ] Better Admin
+* [ ] 收到微信unsubscribe事件时进行清理工作
+* [ ] deactive修改过密码的用户
+
+* [ ] 对成绩更新（比如实验课出分、补考出分）也进行响应（alpha.User._TBCA）
 * [ ] 个人页面
 * [ ] 摸索下怎么搞测试
-* [ ] 对成绩更新（比如实验课出分、补考出分）也进行响应
-* [ ] 收到微信unsubscribe事件时进行清理工作
-* [x] 优化`get_data()``get_current_GPA()`
-* [ ] deactive修改过密码的用户
-* [ ] Better Log
+
+* [x] 优化data retrieve
 
 ##CREDIT
 ###PyFetion

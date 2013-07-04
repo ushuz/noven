@@ -68,7 +68,7 @@ class User(object):
         self._session = None
 
         self._login()
-        self.get_name()
+        self._get_name()
         self._logout()
 
     @session_required
@@ -102,7 +102,7 @@ class User(object):
         self._session = None
         pass
 
-    def get_name(self):
+    def _get_name(self):
         """Save and return the user's true name."""
         r = self._open(NAME_URL)
 
@@ -113,10 +113,10 @@ class User(object):
             logging.info("Name got - %s" % self.name)
             return self.name
 
-    def get_GPA(self, r, all=False):
+    def _get_GPA(self, r, all=False):
         """Save and return all-term GPA or current-term GPA respectly.
 
-        If `all` is `True`, the result will be saved to `GPA`. Otherwise, the
+        If `all`, the result will be saved to `GPA`. Otherwise, the
         result will be saved to `current_GPA`.
         """
         pattern = u"<p>在本查询时间段，你的学分积为(.+?)、必修课取"
@@ -131,7 +131,9 @@ class User(object):
                 logging.info("current_GPA got - %s" % self.current_GPA)
                 return self.current_GPA
 
-    def get_courses(self, r):
+    def _get_courses(self, r):
+        """Save and return newly-released courses, save rank as well.
+        """
         # Import BeautifulSoup to deal with the data we got.
         from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(r.content)
@@ -142,8 +144,9 @@ class User(object):
             if u"全学程" in l[-1].contents[1].contents[2].string \
             else l[-1].contents[1].contents[3].string[5:]
 
-        del l[0]    # 删除冗余数据
-        del l[-4:]  # 删除冗余数据
+        # Delete unnecessary data.
+        del l[0]
+        del l[-4:]
 
         new_courses = {}
         for i in l:
@@ -176,6 +179,8 @@ class User(object):
         return new_courses
 
     def initialize(self):
+        """Initialize the User's data.
+        """
         self._login()
 
         # Initializing data.
@@ -185,34 +190,34 @@ class User(object):
             "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
         }
         r = self._open(DATA_URL, data=payload)
-        self.get_GPA(r, True)
-        self.get_courses(r)
+        self._get_GPA(r, True)
+        self._get_courses(r)
 
         # Get `current_GPA`
         r = self._open(DATA_URL)
-        self.get_GPA(r)
+        self._get_GPA(r)
 
         self._logout()
 
     def update(self):
-        """Update & return newly-released courses for external call."""
+        """Update & return newly-released courses for external call.
+        """
         self._login()
 
         # Get `new_courses`
         r = self._open(DATA_URL)
-
-        new_courses = self.get_courses(r)
+        new_courses = self._get_courses(r)
         logging.info(u"%d more courses released - %s" % (len(new_courses), self.name))
 
         # Only if we got new courses should we update GPAs.
         if new_courses:
-            self.get_GPA(r)
+            self._get_GPA(r)
             payload = {
             "order":"xn", "by":"DESC", "year":"0", "term":"0",
             "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
             }
             r = self._open(DATA_URL, data=payload)
-            self.get_GPA(r, True)
+            self._get_GPA(r, True)
 
         self._logout()
         return new_courses
