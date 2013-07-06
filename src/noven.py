@@ -104,7 +104,7 @@ class VerifyHandler(BaseHandler):
         n = self.current_user.mobileno.encode("utf-8")
         p = self.current_user.mobilepass.encode("utf-8")
         c = (VCODE_MESSAGE_TPL % (self.current_user.name, hashlib.sha1(self.get_cookie("uc")).hexdigest()[:6])).encode("utf-8")
-        
+
         fetion = NovenFetion.Fetion(n, p)
         while True:
             try:
@@ -119,7 +119,7 @@ class VerifyHandler(BaseHandler):
                 print str(e)
                 continue
             break
-        
+
         # If everything goes well, then log and render.
         print "%s - SMS sent" % n
         self.render("verify.html")
@@ -165,7 +165,7 @@ class SorryHandler(BaseHandler):
 class UpdateTaskHandler(BaseHandler):
     def get(self):
         # As `getkeys_by_prefix()` has a default max return limit(100), remember
-        # to update limit when our user amount gets too large. 
+        # to update limit when our user amount gets too large.
         uclist = [uc for uc in self.kv.getkeys_by_prefix("") if len(uc) == 9]
         for uc in uclist:
             payload = {
@@ -178,7 +178,7 @@ class UpdateTaskHandler(BaseHandler):
         if not uc:
             print "Update Error: missing argument: `uc`."
             return
-        
+
         u = self.kv.get(uc.encode("utf-8"))
         if not u or not u.verified or not u.name:
             print "Update Error: can't get `u` by `uc` - %s." % uc
@@ -205,7 +205,7 @@ class UpdateTaskHandler(BaseHandler):
                 "c": (NEW_COURSES_TPL % (u.name, len(new_courses), tosend, u.current_GPA, u.GPA, u.rank)).encode("utf-8")
             }
             sae.taskqueue.add_task("send_notification_sms_task", "/backend/sms", urllib.urlencode(noteinfo))
-    
+
     def check_xsrf_cookie(self):
         # Taskqueue will POST to this URL.  There is no need to check XSRF
         # in this case as the only argument is `uc` which is used to get a
@@ -306,7 +306,7 @@ class WxHandler(BaseHandler):
         if isinstance(msg, NovenWx.HelloMessage):
             self.reply(msg, WX_GUIDE)
             return
-        
+
         # TODO: Unsubscribe event.
         # We can do some clean up works when users unsubscribe.  We can finish
         # it later.

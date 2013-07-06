@@ -31,7 +31,7 @@ app = tornado.wsgi.WSGIApplication([
     (r"/verify", noven.VerifyHandler),
     (r"/sorry", noven.SorryHandler),
     (r"/weixin", noven.WxHandler),
-    
+
     (r"/backend/update", noven.UpdateTaskHandler),
     (r"/backend/sms", noven.SMSTaskHandler),
     # (r"/backend/upgrade", noven.UpgradeHandler),
