@@ -313,11 +313,16 @@ class WxHandler(BaseHandler):
 
         # Sign up logic.
         if isinstance(msg, NovenWx.SignupMessage):
+            if self.kv.get(msg.fr.encode("utf-8")):
+                self.reply(msg, u"Sorry，请勿重复登记！")
+                return
             u = self.kv.get(msg.usercode.encode("utf-8"))
 
             if u and u.password == msg.password:
                 u.wx_id = msg.fr
                 u.verified = True
+                u.mobileno = None
+                u.mobilepass = None
             else:
                 u = alpha.User(
                     ucode = msg.usercode,
