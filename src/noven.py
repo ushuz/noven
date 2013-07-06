@@ -99,13 +99,30 @@ class SignupHandler(BaseHandler):
 class VerifyHandler(BaseHandler):
     @authenticated
     def get(self):
+        # When verifying a user, SMS should be sent synchronously in order to
+        # redirect the user to error page when AuthError occurs.
+        n = self.current_user.mobileno.encode("utf-8")
+        p = self.current_user.mobilepass.encode("utf-8")
+        c = (VCODE_MESSAGE_TPL % (self.current_user.name, hashlib.sha1(self.get_cookie("uc")).hexdigest()[:6])).encode("utf-8")
+        
+        fetion = NovenFetion.Fetion(n, p)
+        while True:
+            try:
+                fetion.login()
+                fetion.send_sms(c)
+                fetion.logout()
+            except NovenFetion.AuthError, e:
+                print str(e)
+                self.redirect("/sorry")
+                return
+            except Exception, e:
+                print str(e)
+                continue
+            break
+        
+        # If everything goes well, then log and render.
+        print "%s - SMS sent" % n
         self.render("verify.html")
-        veryinfo = {
-            "n": self.current_user.mobileno,
-            "p": self.current_user.mobilepass,
-            "c": (VCODE_MESSAGE_TPL % (self.current_user.name, hashlib.sha1(self.get_cookie("uc")).hexdigest()[:6])).encode("utf-8")
-        }
-        sae.taskqueue.add_task("send_verify_sms_task", "/backend/sms", urllib.urlencode(veryinfo))
 
     def post(self):
         vcode = self.get_argument("vcode", None)
