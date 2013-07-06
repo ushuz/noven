@@ -72,5 +72,5 @@ class Fetion(object):
         try:
             r = self.session.get(HOST+"/im5/index/logoutsubmit.action")
         except:
-            ConnError("%s - ConnError: Logout" % self.mobile)
+            raise ConnError("%s - ConnError: Logout" % self.mobile)
         self.id = None

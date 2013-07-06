@@ -20,6 +20,6 @@ if len(sys.argv) == 3:
         t = t.replace(u"  ", u"")
     
     with open(out_path, "w+") as f:
-        f.write(r.text.encode("utf-8"))
+        f.write(t.encode("utf-8"))
 else:
     print "usage: python min.py input_filename output_filename"
