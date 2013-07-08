@@ -107,7 +107,7 @@ class User(object):
         r = self._open(NAME_URL)
 
         pattern = u""".* MenuItem\( "注销 (.+?)", .*"""
-        m = re.search(pattern, r.content.decode("gb2312"))
+        m = re.search(pattern, r.content.decode("gbk"))
         if m:
             self.name = m.groups()[0]
             logging.info("Name got - %s" % self.name)

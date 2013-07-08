@@ -255,11 +255,12 @@ class UpgradeHandler(BaseHandler):
 WX_SIGNUP_FAIL = u'''Sorry，登记失败了！请检查学号、密码是否输入有误。'''
 WX_SIGNUP_SUCC = u'''Hello，%s！全学程您的学分积为%s，%s，共修过%d门课。加油！'''
 WX_GUIDE = u"\r\n".join([u"欢迎通过微信使用Noven！",
+                         u"Noven可以帮助你查询最近出分状况，省去了频繁登录教务系统的烦恼~",
                          u"",
                          u"微信公众号是为无法使用飞信的同学而特别准备的。若您是飞信用户，"
                          u"欢迎到Noven网站登记：noven.sinaapp.com，如有新课程出分将自动短信通知，比微信更方便快捷~",
                          u"",
-                         u"登记：发送“ZC 学号 密码”（请用空格隔开，不包括引号）",
+                         u"登记：发送“ZC 学号 教务系统密码”（请用空格隔开，不包括引号）",
                          u"查询：登记后发送任意内容即可查询最近出分状况",
                          u"",
                          u"若您已在网站登记，微信登记后短信通知将随即终止"])
@@ -314,7 +315,7 @@ class WxHandler(BaseHandler):
         # Sign up logic.
         if isinstance(msg, NovenWx.SignupMessage):
             if self.kv.get(msg.fr.encode("utf-8")):
-                self.reply(msg, u"Sorry，请勿重复登记！")
+                self.reply(msg, u"Hello，您已成功登记！回复任意内容查询最近出分状况。")
                 return
             u = self.kv.get(msg.usercode.encode("utf-8"))
 
