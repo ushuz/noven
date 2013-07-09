@@ -157,7 +157,8 @@ class WelcomeHandler(BaseHandler):
 
 class SorryHandler(BaseHandler):
     def get(self):
-        error = "请检查学号、密码、手机号、飞信密码及验证码是否输入有误。"
+        error = "请检查学号、密码、手机号、飞信密码及验证码是否输入有误。<br/>" \
+                "若您已不记得飞信密码，可以编辑新密码发送到12520050重置您的飞信密码。"
         self.render("sorry.html", error = error)
 
 
