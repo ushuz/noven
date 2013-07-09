@@ -44,7 +44,14 @@ def parse(xmlstring):
             # API changed since 20130326, WTF!
             # If we get a new follower, an event msg will be pushed to our
             # server of which `MsgType` is `event`.
-            return HelloMessage(to, fr, time)
+            event = et.find("Event").text.decode("utf-8")
+            print event
+            if event == u"subscribe":
+                return HelloMessage(to, fr, time)
+            elif event == u"unsubscribe":
+                return ByeMessage(to, fr, time)
+            else:
+                return QueryMessage(to, fr, time)
 
         return QueryMessage(to, fr, time)
 
@@ -76,6 +83,10 @@ class WxMessage(object):
 
 class HelloMessage(WxMessage):
     '''When received, a guide message should be returned to the user.'''
+
+
+class ByeMessage(WxMessage):
+    """When received, some cleanup work should be done."""
 
 
 class QueryMessage(WxMessage):
