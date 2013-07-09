@@ -124,11 +124,11 @@ class User(object):
         if m:
             if all:
                 self.GPA = m.group(1)
-                logging.info("GPA got - %s" % self.GPA)
+                logging.info("%s - GPA updated:%s", self.usercode, self.GPA)
                 return self.GPA
             else:
                 self.current_GPA = m.group(1)
-                logging.info("current_GPA got - %s" % self.current_GPA)
+                logging.info("%s - `current_GPA` updated: %s", self.usercode, self.current_GPA)
                 return self.current_GPA
 
     def _get_courses(self, r):
@@ -139,13 +139,17 @@ class User(object):
         soup = BeautifulSoup(r.content)
 
         l = soup.findAll('tr', height='25')
-        try:
-            # Save the rank calculated by JWXT.
-            self.rank = l[-1].contents[1].contents[2].string[5:] \
-                if u"全学程" in l[-1].contents[1].contents[2].string \
-                else l[-1].contents[1].contents[3].string[5:]
-        except IndexError as e:
-            logging.error("%s - [alpha2.User] IndexError when saving rank." % self.usercode)
+        if not l:
+            # IndexError sometimes occurs when saving rank.  It appears that
+            # malformed response we received is to blame, i.e. `r.content` is
+            # not completed.
+            logging.error("%s - [alpha2] `soup.findAll` returns empty list.", self.usercode)
+            return {}
+
+        # Save the rank calculated by JWXT.
+        self.rank = l[-1].contents[1].contents[2].string[5:] \
+            if u"全学程" in l[-1].contents[1].contents[2].string \
+            else l[-1].contents[1].contents[3].string[5:]
 
         # Delete unnecessary data.
         del l[0]
@@ -153,36 +157,35 @@ class User(object):
 
         new_courses = {}
         for i in l:
-            try:
-                # Normal cases.
-                if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
-                    course = Course(
-                        subject = i.contents[1].string.replace(u' ', u''),
-                        score   = unicode(i.contents[3].contents[0].string),
-                        point   = i.contents[11].string,
-                        term    = i.contents[13].string + i.contents[15].string
-                    )
-                # Special cases.
-                # If the course is released before Rating System being closed,
-                # score will not be displayed.
-                elif i.contents[3].get('colspan') == u'5':
-                    course = Course(
-                        subject = i.contents[1].string.replace(u' ', u''),
-                        score   = u'待评价',
-                        point   = u'-',
-                        term    = i.contents[5].string + i.contents[7].string
-                    )
-                else:
-                    continue
-
-                key = course.term + course.subject
-                if key not in self.courses.keys() and key not in new_courses.keys():
-                    logging.debug(u"A new course - %s", key)
-                    new_courses[key] = course
-
-            except IndexError as e:
-                logging.error("%s - [alpha2.User] IndexError when getting courses." % self.usercode)
+            if len(i.contents) < 4:
+                logging.debug("%s - [alpha2] Too few `i.contents`.", self.usercode)
                 continue
+            # Normal cases.
+            if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
+                course = Course(
+                    subject = i.contents[1].string.replace(u' ', u''),
+                    score   = unicode(i.contents[3].contents[0].string),
+                    point   = i.contents[11].string,
+                    term    = i.contents[13].string + i.contents[15].string
+                )
+            # Special cases.
+            # If the course is released before Rating System being closed,
+            # score will not be displayed.
+            elif i.contents[3].get('colspan') == u'5':
+                course = Course(
+                    subject = i.contents[1].string.replace(u' ', u''),
+                    score   = u'待评价',
+                    point   = u'-',
+                    term    = i.contents[5].string + i.contents[7].string
+                )
+            else:
+                # If no course is created, we should simply continue.
+                continue
+
+            key = course.term + course.subject
+            if key not in self.courses.keys() and key not in new_courses.keys():
+                logging.debug("%s - [alpha2] A new course: %s", self.usercode, key)
+                new_courses[key] = course
 
         # Save newly-released courses.
         self.courses.update(new_courses)
@@ -200,8 +203,8 @@ class User(object):
             "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
         }
         r = self._open(DATA_URL, data=payload)
-        self._get_GPA(r, True)
         self._get_courses(r)
+        self._get_GPA(r, True)
 
         # Get `current_GPA`
         r = self._open(DATA_URL)
@@ -234,7 +237,7 @@ class User(object):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format="%(asctime)s - %(levelname)-8s %(message)s", level=logging.DEBUG)
+    logging.basicConfig(format="%(asctime)s - %(levelname)-5s %(message)s", level=logging.DEBUG)
     # u.get_data()
     print u.GPA
     print u.current_GPA
