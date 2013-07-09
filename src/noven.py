@@ -164,9 +164,8 @@ class SorryHandler(BaseHandler):
 # Task handlers
 class UpdateTaskHandler(BaseHandler):
     def get(self):
-        # As `getkeys_by_prefix()` has a default max return limit(100), remember
-        # to update limit when our user amount gets too large.
-        uclist = [uc for uc in self.kv.getkeys_by_prefix("") if len(uc) == 9]
+        # The users base is very large right now, so we have to change the prefix.
+        uclist = [uc for uc in self.kv.getkeys_by_prefix("1", limit=200) if len(uc) == 9]
         for uc in uclist:
             payload = {
                 "uc": uc
