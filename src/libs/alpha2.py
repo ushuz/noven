@@ -139,10 +139,13 @@ class User(object):
         soup = BeautifulSoup(r.content)
 
         l = soup.findAll('tr', height='25')
-        # Save the rank calculated by JWXT.
-        self.rank = l[-1].contents[1].contents[2].string[5:] \
-            if u"全学程" in l[-1].contents[1].contents[2].string \
-            else l[-1].contents[1].contents[3].string[5:]
+        try:
+            # Save the rank calculated by JWXT.
+            self.rank = l[-1].contents[1].contents[2].string[5:] \
+                if u"全学程" in l[-1].contents[1].contents[2].string \
+                else l[-1].contents[1].contents[3].string[5:]
+        except IndexError as e:
+            logging.error("[alpha] IndexError when saving rank for %s." % self.usercode)
 
         # Delete unnecessary data.
         del l[0]
@@ -150,29 +153,36 @@ class User(object):
 
         new_courses = {}
         for i in l:
-            # Normal cases.
-            if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
-                course = Course(
-                    subject = i.contents[1].string.replace(u' ', u''),
-                    score   = unicode(i.contents[3].contents[0].string),
-                    point   = i.contents[11].string,
-                    term    = i.contents[13].string + i.contents[15].string
-                )
-            # Special cases.
-            # If the course is released before Rating System being closed,
-            # score will not be displayed.
-            elif i.contents[3].get('colspan') == u'5':
-                course = Course(
-                    subject = i.contents[1].string.replace(u' ', u''),
-                    score   = u'待评价',
-                    point   = u'-',
-                    term    = i.contents[5].string + i.contents[7].string
-                )
+            try:
+                # Normal cases.
+                if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
+                    course = Course(
+                        subject = i.contents[1].string.replace(u' ', u''),
+                        score   = unicode(i.contents[3].contents[0].string),
+                        point   = i.contents[11].string,
+                        term    = i.contents[13].string + i.contents[15].string
+                    )
+                # Special cases.
+                # If the course is released before Rating System being closed,
+                # score will not be displayed.
+                elif i.contents[3].get('colspan') == u'5':
+                    course = Course(
+                        subject = i.contents[1].string.replace(u' ', u''),
+                        score   = u'待评价',
+                        point   = u'-',
+                        term    = i.contents[5].string + i.contents[7].string
+                    )
+                else:
+                    continue
 
-            key = course.term + course.subject
-            if key not in self.courses.keys() and key not in new_courses.keys():
-                logging.info(u"A new course - %s", key)
-                new_courses[key] = course
+                key = course.term + course.subject
+                if key not in self.courses.keys() and key not in new_courses.keys():
+                    logging.info(u"A new course - %s", key)
+                    new_courses[key] = course
+
+            except IndexError as e:
+                logging.error("[alpha] IndexError when getting courses for %s." % self.usercode)
+                continue
 
         # Save newly-released courses.
         self.courses.update(new_courses)
