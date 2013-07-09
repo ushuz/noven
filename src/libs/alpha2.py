@@ -124,7 +124,7 @@ class User(object):
         if m:
             if all:
                 self.GPA = m.group(1)
-                logging.info("%s - GPA updated:%s", self.usercode, self.GPA)
+                logging.info("%s - `GPA` updated: %s", self.usercode, self.GPA)
                 return self.GPA
             else:
                 self.current_GPA = m.group(1)
@@ -220,32 +220,21 @@ class User(object):
         # Get `new_courses`
         r = self._open(DATA_URL)
         new_courses = self._get_courses(r)
-        logging.info(u"%d more courses released - %s" % (len(new_courses), self.name))
+        logging.info("%s - %d more courses released.", self.usercode, len(new_courses))
 
         # Only if we got new courses should we update GPAs.
         if new_courses:
-            self._get_GPA(r)
             payload = {
             "order":"xn", "by":"DESC", "year":"0", "term":"0",
             "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
             }
-            r = self._open(DATA_URL, data=payload)
-            self._get_GPA(r, True)
+            a = self._open(DATA_URL, data=payload)
+            self._get_GPA(a, True)
+            self._get_GPA(r)
 
         self._logout()
         return new_courses
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format="%(asctime)s - %(levelname)-5s %(message)s", level=logging.DEBUG)
-    # u.get_data()
-    print u.GPA
-    print u.current_GPA
-    u.update()
-    print len(u.courses)
-    # for k, v in u.courses.items():
-        # print k, v
-    # print "user init done"
-    # print u.get_data()
-    # u.get_data = tmp
-    # print u.update()
+    logging.basicConfig(format="%(asctime)s - %(levelname)-5s %(message)s", level=logging.INFO)
