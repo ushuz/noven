@@ -87,7 +87,32 @@ class SignupHandler(BaseHandler):
             userinfo["mcode"],
             userinfo["mpass"]
         )
+
         if new_user.name:
+            # If user's usercode and password are OK, then we should send
+            # verification SMS.  SMS should be sent synchronously in order to
+            # redirect the user to error page when AuthError occurs.
+            n = new_user.mobileno.encode("utf-8")
+            p = new_user.mobilepass.encode("utf-8")
+            c = (VCODE_MESSAGE_TPL % (new_user.name, hashlib.sha1(self._new_cookie["uc"].value).hexdigest()[:6])).encode("utf-8")
+
+            fetion = NovenFetion.Fetion(n, p)
+            while True:
+                try:
+                    fetion.login()
+                    fetion.send_sms(c)
+                    fetion.logout()
+                except NovenFetion.AuthError, e:
+                    print str(e)
+                    self.redirect("/sorry")
+                    return
+                except Exception, e:
+                    print str(e)
+                    continue
+                break
+            # If SMS is sent, log and move on.
+            print "%s - SMS sent" % n
+
             # `set()` only takes str as key, WTF!
             # As a result, we have to encode the KEY 'cause it is unicode.'
             self.kv.set(new_user.usercode.encode("utf-8"), new_user)
@@ -99,29 +124,6 @@ class SignupHandler(BaseHandler):
 class VerifyHandler(BaseHandler):
     @authenticated
     def get(self):
-        # When verifying a user, SMS should be sent synchronously in order to
-        # redirect the user to error page when AuthError occurs.
-        n = self.current_user.mobileno.encode("utf-8")
-        p = self.current_user.mobilepass.encode("utf-8")
-        c = (VCODE_MESSAGE_TPL % (self.current_user.name, hashlib.sha1(self.get_cookie("uc")).hexdigest()[:6])).encode("utf-8")
-
-        fetion = NovenFetion.Fetion(n, p)
-        while True:
-            try:
-                fetion.login()
-                fetion.send_sms(c)
-                fetion.logout()
-            except NovenFetion.AuthError, e:
-                print str(e)
-                self.redirect("/sorry")
-                return
-            except Exception, e:
-                print str(e)
-                continue
-            break
-
-        # If everything goes well, then log and render.
-        print "%s - SMS sent" % n
         self.render("verify.html")
 
     def post(self):
