@@ -145,7 +145,7 @@ class User(object):
                 if u"全学程" in l[-1].contents[1].contents[2].string \
                 else l[-1].contents[1].contents[3].string[5:]
         except IndexError as e:
-            logging.error("[alpha] IndexError when saving rank for %s." % self.usercode)
+            logging.error("%s - [alpha2.User] IndexError when saving rank." % self.usercode)
 
         # Delete unnecessary data.
         del l[0]
@@ -177,11 +177,11 @@ class User(object):
 
                 key = course.term + course.subject
                 if key not in self.courses.keys() and key not in new_courses.keys():
-                    logging.info(u"A new course - %s", key)
+                    logging.debug(u"A new course - %s", key)
                     new_courses[key] = course
 
             except IndexError as e:
-                logging.error("[alpha] IndexError when getting courses for %s." % self.usercode)
+                logging.error("%s - [alpha2.User] IndexError when getting courses." % self.usercode)
                 continue
 
         # Save newly-released courses.

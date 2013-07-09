@@ -316,7 +316,7 @@ class WxHandler(BaseHandler):
                 u = self.kv.get(uc)
                 u.verified = False
                 self.kv.set(uc, u)
-                logging.info("[noven.WxHandler] Deactivated: %s." % uc)
+                logging.info("%s - Deactivated: Unsubscribe." % uc)
 
         # Sign up logic.
         if isinstance(msg, NovenWx.SignupMessage):

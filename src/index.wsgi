@@ -41,5 +41,5 @@ app = tornado.wsgi.WSGIApplication([
     (r"/admin/msg", admin.GroupMessage)
 ], **settings)
 
-logging.basicConfig(format='%(asctime)s - %(levelname)-8s %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(levelname)-5s %(message)s', level=logging.INFO)
 application = sae.create_wsgi_app(app)
