@@ -307,9 +307,16 @@ class WxHandler(BaseHandler):
             self.reply(msg, WX_GUIDE)
             return
 
-        # TODO: Unsubscribe event.
-        # We can do some clean up works when users unsubscribe.  We can finish
-        # it later.
+        # Unsubscribe event.
+        # Deactivate users when they unsubscribe to save unnecessary update.
+        # In case of users' returning back, we don't delete data.
+        if isinstance(msg, NovenWx.ByeMessage):
+            uc = self.kv.get(msg.fr.encode("utf-8"))
+            if uc:
+                u = self.kv.get(uc)
+                u.verified = False
+                self.kv.set(uc, u)
+                logging.info("[noven.WxHandler] Deactivated: %s." % uc)
 
         # Sign up logic.
         if isinstance(msg, NovenWx.SignupMessage):
