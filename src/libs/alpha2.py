@@ -110,7 +110,7 @@ class User(object):
         m = re.search(pattern, r.content.decode("gbk"))
         if m:
             self.name = m.groups()[0]
-            logging.info("Name got - %s" % self.name)
+            logging.info("%s - Name found: %s", self.usercode, self.name)
             return self.name
 
     def _get_GPA(self, r, all=False):
@@ -124,11 +124,11 @@ class User(object):
         if m:
             if all:
                 self.GPA = m.group(1)
-                logging.info("%s - `GPA` updated: %s", self.usercode, self.GPA)
+                logging.info("%s - GPA updated: %s", self.usercode, self.GPA)
                 return self.GPA
             else:
                 self.current_GPA = m.group(1)
-                logging.info("%s - `current_GPA` updated: %s", self.usercode, self.current_GPA)
+                logging.info("%s - Current GPA: %s", self.usercode, self.current_GPA)
                 return self.current_GPA
 
     def _get_courses(self, r):
@@ -150,6 +150,7 @@ class User(object):
         self.rank = l[-1].contents[1].contents[2].string[5:] \
             if u"全学程" in l[-1].contents[1].contents[2].string \
             else l[-1].contents[1].contents[3].string[5:]
+        logging.info("%s - Rank saved: %s", self.usercode, self.rank)
 
         # Delete unnecessary data.
         del l[0]
@@ -220,16 +221,18 @@ class User(object):
         # Get `new_courses`
         r = self._open(DATA_URL)
         new_courses = self._get_courses(r)
-        logging.info("%s - %d more courses released.", self.usercode, len(new_courses))
 
         # Only if we got new courses should we update GPAs.
         if new_courses:
+            logging.info("%s - %d more courses released for %s.", self.usercode, len(new_courses), self.name)
+
             payload = {
             "order":"xn", "by":"DESC", "year":"0", "term":"0",
             "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
             }
             a = self._open(DATA_URL, data=payload)
             self._get_GPA(a, True)
+
             self._get_GPA(r)
 
         self._logout()
@@ -237,4 +240,5 @@ class User(object):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format="%(asctime)s - %(levelname)-5s %(message)s", level=logging.INFO)
+    logging.basicConfig(format="[%(levelname).1s %(asctime).19s] %(message)s", level=logging.INFO)
+    logging.getLogger("requests").setLevel(logging.WARNING)
