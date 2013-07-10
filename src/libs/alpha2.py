@@ -240,5 +240,5 @@ class User(object):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format="[%(levelname).1s %(asctime).19s] %(message)s", level=logging.INFO)
+    logging.basicConfig(format="%(levelname).1s [%(asctime).19s] %(message)s", level=logging.INFO)
     logging.getLogger("requests").setLevel(logging.WARNING)

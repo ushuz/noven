@@ -6,10 +6,13 @@ import logging
 import sae
 import tornado.wsgi
 
-#import handlers
-import noven    # main logic
-import admin    # administration
+# Import handlers
+import noven    # Main logic
+import admin    # Administration
 
+# Global logging settings
+logging.basicConfig(format="%(levelname).1s [%(asctime).19s] %(message)s", level=logging.INFO)
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 settings = {
     "debug": False,
@@ -24,6 +27,10 @@ settings = {
 
 if "SERVER_SOFTWARE" not in os.environ:
     settings["static_path"] = os.path.join(os.path.dirname(__file__), "../assets")
+
+    # Set logging level to DEBUG when run locally
+    logging.getLogger("requests").setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.DEBUG)
 
 app = tornado.wsgi.WSGIApplication([
     (r"/", noven.SignupHandler),
@@ -41,5 +48,4 @@ app = tornado.wsgi.WSGIApplication([
     (r"/admin/msg", admin.GroupMessage)
 ], **settings)
 
-logging.basicConfig(format='%(asctime)s - %(levelname)-5s %(message)s', level=logging.INFO)
 application = sae.create_wsgi_app(app)
