@@ -150,7 +150,7 @@ class User(object):
         self.rank = l[-1].contents[1].contents[2].string[5:] \
             if u"全学程" in l[-1].contents[1].contents[2].string \
             else l[-1].contents[1].contents[3].string[5:]
-        logging.info("%s - Rank saved: %s", self.usercode, self.rank)
+        logging.debug("%s - [alpha2] Rank saved: %s", self.usercode, self.rank)
 
         # Delete unnecessary data.
         del l[0]

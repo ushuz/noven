@@ -12,7 +12,7 @@ import admin    # Administration
 
 # Global logging settings
 logging.basicConfig(format="%(levelname).1s [%(asctime).19s] %(message)s", level=logging.INFO)
-logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("libs.requests").setLevel(logging.WARNING)
 
 settings = {
     "debug": False,
@@ -29,7 +29,6 @@ if "SERVER_SOFTWARE" not in os.environ:
     settings["static_path"] = os.path.join(os.path.dirname(__file__), "../assets")
 
     # Set logging level to DEBUG when run locally
-    logging.getLogger("requests").setLevel(logging.DEBUG)
     logging.getLogger().setLevel(logging.DEBUG)
 
 app = tornado.wsgi.WSGIApplication([
