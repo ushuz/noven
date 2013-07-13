@@ -3,6 +3,7 @@
 import urllib
 import hashlib
 import functools
+import logging
 
 import sae
 import sae.kvdb
@@ -305,8 +306,17 @@ class WxHandler(BaseHandler):
                 return
 
         # Subscribe event.
-        # A new follower, return the guide.
+        # Check whether the user exists. If exists, activate the user and
+        # return `SUCC`. Otherwise, it's a new follower, return the guide.
         if isinstance(msg, NovenWx.HelloMessage):
+            uc = self.kv.get(msg.fr.encode("utf-8"))
+            if uc:
+                u = self.kv.get(uc)
+                u.verified = True
+                self.kv.set(uc, u)
+                logging.info("%s - Activated: Re-Subsciribe.")
+                self.reply(msg, u"Hello，%s！欢迎回来！" % u.name)
+                return
             self.reply(msg, WX_GUIDE)
             return
 

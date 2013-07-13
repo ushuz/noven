@@ -45,7 +45,7 @@ def parse(xmlstring):
             # If we get a new follower, an event msg will be pushed to our
             # server of which `MsgType` is `event`.
             event = et.find("Event").text.decode("utf-8")
-            print event
+
             if event == u"subscribe":
                 return HelloMessage(to, fr, time)
             elif event == u"unsubscribe":
