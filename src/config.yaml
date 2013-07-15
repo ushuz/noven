@@ -8,10 +8,10 @@ libraries:
 cron:
 - description: Update schedule for 1nd term.
   url: backend/update
-  schedule: "2 0,6-22/3 * 1-2 *"
+  schedule: "2 0,8,10,12-22/3 * 1-2 *"
 - description: Update schedule for 2nd term.
   url: backend/update
-  schedule: "2 0,6-22/3 * 6-7 *"
+  schedule: "2 0,8,10,12-22/3 * 6-7 *"
 
 handlers:
 - url: /static/
