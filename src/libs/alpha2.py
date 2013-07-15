@@ -110,7 +110,7 @@ class User(object):
         m = re.search(pattern, r.content.decode("gbk"))
         if m:
             self.name = m.groups()[0]
-            logging.info("%s - Name found: %s", self.usercode, self.name)
+            logging.debug("%s - [alpha2] Name found: %s", self.usercode, self.name)
             return self.name
 
     def _get_GPA(self, r, all=False):
@@ -124,11 +124,11 @@ class User(object):
         if m:
             if all:
                 self.GPA = m.group(1)
-                logging.info("%s - GPA updated: %s", self.usercode, self.GPA)
+                logging.debug("%s - [alpha2] GPA updated: %s", self.usercode, self.GPA)
                 return self.GPA
             else:
                 self.current_GPA = m.group(1)
-                logging.info("%s - Current GPA: %s", self.usercode, self.current_GPA)
+                logging.debug("%s - [alpha2] Current GPA updated: %s", self.usercode, self.current_GPA)
                 return self.current_GPA
 
     def _get_courses(self, r):
@@ -211,6 +211,9 @@ class User(object):
         r = self._open(DATA_URL)
         self._get_GPA(r)
 
+        logging.info("%s - Initiated: [Name] %s [Courses] %d [GPA] %s [c_GPA] %s.",
+            self.usercode, self.name, len(self.courses), self.GPA, self.current_GPA)
+
         self._logout()
 
     def update(self):
@@ -224,8 +227,6 @@ class User(object):
 
         # Only if we got new courses should we update GPAs.
         if new_courses:
-            logging.info("%s - %d more courses released for %s.", self.usercode, len(new_courses), self.name)
-
             payload = {
             "order":"xn", "by":"DESC", "year":"0", "term":"0",
             "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
@@ -234,6 +235,9 @@ class User(object):
             self._get_GPA(a, True)
 
             self._get_GPA(r)
+
+            logging.info("%s - Updated: [Name] %s [Courses] %d [GPA] %s [c_GPA] %s.",
+                self.usercode, self.name, len(new_courses), self.GPA, self.current_GPA)
 
         self._logout()
         return new_courses
