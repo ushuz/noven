@@ -158,14 +158,19 @@ class User(object):
 
         new_courses = {}
         for i in l:
-            if len(i.contents) < 4:
+            if len(i.contents) < 16:
                 logging.debug("%s - [alpha2] Too few `i.contents`.", self.usercode)
                 continue
             # Normal cases.
             if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
+                # When [期末] is empty, we turn to [备注].
+                score = unicode(i.contents[3].contents[0].string) \
+                    if i.contents[3].contents[0].string \
+                    else i.contents[9].contents[0].string
+
                 course = Course(
                     subject = i.contents[1].string.replace(u' ', u''),
-                    score   = unicode(i.contents[3].contents[0].string),
+                    score   = score,
                     point   = i.contents[11].string,
                     term    = i.contents[13].string + i.contents[15].string
                 )
@@ -180,7 +185,8 @@ class User(object):
                     term    = i.contents[5].string + i.contents[7].string
                 )
             else:
-                # If no course is created, we should simply continue.
+                # If no course was created, we should simply continue in case
+                # of encountering NameError later.
                 continue
 
             key = course.term + course.subject
