@@ -41,6 +41,12 @@ class Course(dict):
     def term(self):
         return self[u"term"]
 
+    def __eq__(self, other):
+        for k, v in self.items():
+            if v != other[k]:
+                return False
+        return True
+
 
 class User(object):
     """Providing userful methods and storage for a user."""
@@ -116,8 +122,8 @@ class User(object):
     def _get_GPA(self, r, all=False):
         """Save and return all-term GPA or current-term GPA respectly.
 
-        If `all`, the result will be saved to `GPA`. Otherwise, the
-        result will be saved to `current_GPA`.
+        If `all`, the result will be saved to `GPA`. Otherwise, the result
+        will be saved to `current_GPA`.
         """
         pattern = u"<p>在本查询时间段，你的学分积为(.+?)、必修课取"
         m = re.search(pattern, r.content.decode("gb2312"))
