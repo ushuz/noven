@@ -107,12 +107,13 @@ class User(object):
         }
         r = self._open(LOGIN_URL, data=payload)
         t = r.content.decode("gb2312")
+
         if u"密码不正确,请重新输入！" in t:
-            logging.error("%s - [alpha2] Wrong password.", self.usercode)
-            raise AuthError("%s - Wrong password." % self.usercode)
+            logging.debug("%s - [alpha2] Wrong password.", self.usercode)
+            raise AuthError("Wrong password: %s" % self.password)
         if u"用户不存在！" in t:
-            logging.error("%s - [alpha2] User doesn't exists.", self.usercode)
-            raise AuthError("%s - [alpha2] User doesn't exists." % self.usercode)
+            logging.debug("%s - [alpha2] User doesn't exists.", self.usercode)
+            raise AuthError("Wrong usercode: %s" % self.usercode)
 
     def _logout(self):
         # Session should be cleared in case of bad things.
