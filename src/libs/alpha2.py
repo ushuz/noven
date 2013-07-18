@@ -163,8 +163,9 @@ class User(object):
         del l[-4:]
 
         new_courses = {}
+        courses = self.courses.values()
         for i in l:
-            if len(i.contents) < 16:
+            if len(i.contents) < 4:
                 logging.debug("%s - [alpha2] Too few `i.contents`.", self.usercode)
                 continue
             # Normal cases.
@@ -180,6 +181,11 @@ class User(object):
                     point   = i.contents[11].string,
                     term    = i.contents[13].string + i.contents[15].string
                 )
+
+                key = course.term + course.subject
+                if course not in courses:
+                    new_courses[key] = course
+                    logging.debug("%s - [alpha2] A new course: %s", self.usercode, key)
             # Special cases.
             # If the course is released before Rating System being closed,
             # score will not be displayed.
@@ -190,19 +196,29 @@ class User(object):
                     point   = u'-',
                     term    = i.contents[5].string + i.contents[7].string
                 )
+
+                key = course.term + course.subject
+                if not self.courses.has_key(key):
+                    new_courses[key] = course
+                    logging.debug("%s - [alpha2] A new course: %s", self.usercode, key)
             else:
                 # If no course was created, we should simply continue in case
                 # of encountering NameError later.
                 continue
 
-            key = course.term + course.subject
-            if key not in self.courses.keys() and key not in new_courses.keys():
-                logging.debug("%s - [alpha2] A new course: %s", self.usercode, key)
-                new_courses[key] = course
-
         # Save newly-released courses.
         self.courses.update(new_courses)
         return new_courses
+
+    def _fetch_now(self):
+        return self._open(DATA_URL)
+
+    def _fetch_all(self):
+        payload = {
+            "order":"xn", "by":"DESC", "year":"0", "term":"0",
+            "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
+            }
+        return self._open(DATA_URL, data=payload)
 
     def initialize(self):
         """Initialize the User's data.
@@ -211,16 +227,12 @@ class User(object):
 
         # Initializing data.
         # Get `courses` and `GPA`
-        payload = {
-            "order":"xn", "by":"DESC", "year":"0", "term":"0",
-            "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
-        }
-        r = self._open(DATA_URL, data=payload)
+        r = self._fetch_all()
         self._get_courses(r)
         self._get_GPA(r, True)
 
         # Get `current_GPA`
-        r = self._open(DATA_URL)
+        r = self._fetch_now()
         self._get_GPA(r)
 
         logging.info("%s - Initiated: [Name] %s [Courses] %d [GPA] %s [c_GPA] %s.",
@@ -234,16 +246,12 @@ class User(object):
         self._login()
 
         # Get `new_courses`
-        r = self._open(DATA_URL)
+        r = self._fetch_now()
         new_courses = self._get_courses(r)
 
         # Only if we got new courses should we update GPAs.
         if new_courses:
-            payload = {
-            "order":"xn", "by":"DESC", "year":"0", "term":"0",
-            "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
-            }
-            a = self._open(DATA_URL, data=payload)
+            a = self._fetch_all()
             self._get_GPA(a, True)
 
             self._get_GPA(r)
@@ -256,5 +264,5 @@ class User(object):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format="%(levelname).1s [%(asctime).19s] %(message)s", level=logging.INFO)
+    logging.basicConfig(format="%(levelname).1s [%(asctime).19s] %(message)s", level=logging.DEBUG)
     logging.getLogger("requests").setLevel(logging.WARNING)
