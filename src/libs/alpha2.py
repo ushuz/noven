@@ -23,6 +23,10 @@ def session_required(method):
     return wrapper
 
 
+class AuthError(Exception):
+    """Wrong usercode or password."""
+
+
 class Course(dict):
     """A wrapper of the basic properties of a course."""
     @property
@@ -101,7 +105,10 @@ class User(object):
             "UserCode"      : self.usercode,
             "UserPassword"  : self.password
         }
-        self._open(LOGIN_URL, data=payload)
+        r = self._open(LOGIN_URL, data=payload)
+        if u"密码不正确,请重新输入！" in r.content.decode("gb2312"):
+            logging.error("%s - [alpha2] Wrong password: %s", self.usercode, self.password)
+            raise AuthError
 
     def _logout(self):
         # Session should be cleared in case of bad things.
@@ -235,7 +242,7 @@ class User(object):
         r = self._fetch_now()
         self._get_GPA(r)
 
-        logging.info("%s - Initiated: [Name] %s [Courses] %d [GPA] %s [c_GPA] %s.",
+        logging.info("%s - Initiated: [Name] %s [Courses] %d [GPA] %s [c_GPA] %s",
             self.usercode, self.name, len(self.courses), self.GPA, self.current_GPA)
 
         self._logout()
@@ -256,7 +263,7 @@ class User(object):
 
             self._get_GPA(r)
 
-            logging.info("%s - Updated: [Name] %s [Courses] %d [GPA] %s [c_GPA] %s.",
+            logging.info("%s - Updated: [Name] %s [Courses] %d [GPA] %s [c_GPA] %s",
                 self.usercode, self.name, len(new_courses), self.GPA, self.current_GPA)
 
         self._logout()
