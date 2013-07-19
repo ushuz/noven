@@ -75,19 +75,20 @@ class SignupHandler(BaseHandler):
         self.render("signup.html", total=self.kv.get_info()["total_count"])
 
     def post(self):
-        userinfo = {
-            "ucode": self.get_argument("uc", None),
-            "upass": self.get_argument("up", None),
-            "mcode": self.get_argument("mc", None),
-            "mpass": self.get_argument("mp", None)
-        }
-        self.set_secure_cookie("uc", userinfo["ucode"])
-        new_user = alpha.User(
-            userinfo["ucode"],
-            userinfo["upass"],
-            userinfo["mcode"],
-            userinfo["mpass"]
-        )
+        ucode = self.get_argument("uc", None)
+        upass = self.get_argument("up", None)
+        mcode = self.get_argument("mc", None)
+        mpass = self.get_argument("mp", None)
+
+        self.set_secure_cookie("uc", ucode)
+        try:
+            new_user = alpha.User(
+                ucode, upass, mcode, mpass
+            )
+        except alpha.AuthError:
+            logging.info("%s - Sign-up failed due to alpha.AuthError.", ucode)
+            self.redirect("/sorry")
+            return
 
         if new_user.name:
             # If user's usercode and password are OK, then we should send
