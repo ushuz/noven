@@ -254,10 +254,6 @@ class UpdateById(BaseHandler):
             # Id can't be empty.
             logging.error("%s - Update failed: No Id.", "100000000")
             return
-        if len(id) != 9:
-            # Id is not valid, for now (BJFU).
-            logging.error("%s - Update failed: Id Not Valid.", id)
-            return
 
         u = self.kv.get(id.encode("utf-8"))
         if not u:
