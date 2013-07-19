@@ -245,6 +245,59 @@ class SMSTaskHandler(BaseHandler):
         pass
 
 
+# ----------------------------------------------------------------------
+# Brand new TaskHandlers
+
+class UpdateById(BaseHandler):
+    def get(self, id):
+        if not id:
+            # Id can't be empty.
+            logging.error("%s - Update failed: No Id.", "100000000")
+            return
+        if len(id) != 9:
+            # Id is not valid, for now (BJFU).
+            logging.error("%s - Update failed: Id Not Valid.", id)
+            return
+
+        u = self.kv.get(id.encode("utf-8"))
+        if not u:
+            # Can't get user from KVDB.
+            logging.error("%s - Update failed: User Not Exists.", id)
+            return
+        if not u.verified:
+            logging.error("%s - Update failed: User Not Activated.", id)
+            # User is not verified.
+            return
+
+        alpha.DATA_URL = "http://127.0.0.1:8888/data"
+        try:
+            new_courses = u.update()
+        except alpha.AuthError:
+            # User changed their password for sure. Deactivate them.
+            u.verified = False
+            self.kv.set(u.usercode.encode("utf-8"), u)
+            return
+
+        if new_courses:
+            # If `u.wx_id` exists, SMS should not be sent.  Instead, we
+            # update `u.wx_push` with `new_courses` so that we can return
+            # it when users performs a score query by Weixin.
+            if u.wx_id:
+                u.wx_push.update(new_courses)
+                self.kv.set(u.usercode.encode("utf-8"), u)
+                return
+
+            self.kv.set(u.usercode.encode("utf-8"), u)
+            tosend = u"、".join([u"%s(%s)" % (v.subject, v.score) for v in new_courses.values()])
+
+            noteinfo = {
+                "n": u.mobileno,
+                "p": u.mobilepass,
+                "c": (NEW_COURSES_TPL % (u.name, len(new_courses), tosend, u.current_GPA, u.GPA, u.rank)).encode("utf-8")
+            }
+            sae.taskqueue.add_task("send_notification_sms_task", "/backend/sms", urllib.urlencode(noteinfo))
+
+
 class UpgradeHandler(BaseHandler):
     def get(self):
         userlist = [ut[1] for ut in self.kv.get_by_prefix("") if isinstance(ut[1], alpha.User)]

@@ -40,10 +40,12 @@ app = tornado.wsgi.WSGIApplication([
 
     (r"/backend/update", noven.UpdateTaskHandler),
     (r"/backend/sms", noven.SMSTaskHandler),
+
+    (r"/backend/update/([0-9]{9,10})", noven.UpdateById),
     # (r"/backend/upgrade", noven.UpgradeHandler),
 
     (r"/admin", admin.Main),
-    (r"/admin/user/([0-9]*)", admin.UsersManagement),
+    (r"/admin/user/([0-9]{9,10})", admin.UsersManagement),
     (r"/admin/msg", admin.GroupMessage)
 ], **settings)
 
