@@ -170,8 +170,8 @@ class SorryHandler(BaseHandler):
 class UpdateTaskHandler(BaseHandler):
     def get(self):
         # The users base is very large right now, so we have to change the prefix.
-        uclist = [uc for uc in self.kv.getkeys_by_prefix("1", limit=300) if len(uc) == 9]
-        for uc in uclist:
+        ucs = self.kv.getkeys_by_prefix("1", limit=300)
+        for uc in ucs:
             payload = {
                 "uc": uc
             }
