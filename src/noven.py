@@ -261,8 +261,8 @@ class UpdateById(BaseHandler):
             logging.error("%s - Update failed: User Not Exists.", id)
             return
         if not u.verified:
-            logging.error("%s - Update failed: User Not Activated.", id)
             # User is not verified.
+            logging.error("%s - Update failed: User Not Activated.", id)
             return
 
         alpha.DATA_URL = "http://127.0.0.1:8888/data"
@@ -292,6 +292,54 @@ class UpdateById(BaseHandler):
                 "c": (NEW_COURSES_TPL % (u.name, len(new_courses), tosend, u.current_GPA, u.GPA, u.rank)).encode("utf-8")
             }
             sae.taskqueue.add_task("send_notification_sms_task", "/backend/sms", urllib.urlencode(noteinfo))
+
+
+class SMSById(BaseHandler):
+    def post(self, id):
+        if not id:
+            # Id can't be empty.
+            logging.error("%s - SMS failed: No Id.", "100000000")
+            return
+
+        u = self.kv.get(id.encode("utf-8"))
+        if not u:
+            # Can't get user from KVDB.
+            logging.error("%s - SMS failed: User Not Exists.", id)
+            return
+        if not u.verified:
+            # User is not verified.
+            logging.error("%s - SMS failed: User Not Activated.", id)
+            return
+        if not u.mobileno or not u.mobilepass:
+            # Can't send SMS.
+            logging.error("%s - SMS failed: User")
+
+        n = u.mobileno.encode("utf-8")  # Mobile number
+        p = u.mobilepass.encode("utf-8")  # Fetion password
+        c = self.get_argument("c").encode("utf-8")  # SMS content
+
+        fetion = NovenFetion.Fetion(n, p)
+        while True:
+            try:
+                fetion.login()
+                fetion.send_sms(c)
+                fetion.logout()
+            except NovenFetion.AuthError as e:
+                logging.error("%s - SMS failed: Wrong password for %s.", id, n)
+                # `NovenFetion.AuthError` means users had changed Fetion password
+                # for sure. Deactivate them.
+                u.verified = False
+                self.kv.set(id.encode("utf-8"), u)
+                logging.info("%s - Deactivate: User changed Fetion password.", id)
+                return
+            except Exception as e:
+                logging.error("%s - SMS failed: %s. Retry.", id, e)
+                continue
+            break
+        logging.info("%s - SMS sent to %s.", id, n)
+
+    def check_xsrf_cookie(self):
+        pass
 
 
 class UpgradeHandler(BaseHandler):
