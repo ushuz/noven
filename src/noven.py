@@ -4,6 +4,7 @@ import urllib
 import hashlib
 import functools
 import logging
+import base64
 
 import sae
 import sae.kvdb
@@ -105,7 +106,6 @@ class SignupHandler(BaseHandler):
                     fetion.send_sms(c)
                     fetion.logout()
                 except NovenFetion.AuthError as e:
-                    logging.error("%s - SMS Failed: %s.", ucode, e)
                     logging.info("%s - Sign-up Failed: %s.", ucode, e)
                     self.redirect("/sorry")
                     return
@@ -151,12 +151,10 @@ class WelcomeHandler(BaseHandler):
             u.initialize()
             self.kv.set(u.usercode.encode("utf-8"), u)
             logging.info("%s - Sign-up Done.")
-            wellinfo = {
-                "n": self.current_user.mobileno,
-                "p": self.current_user.mobilepass,
-                "c": (WELCOME_MESSAGE_TPL % (u.name, u.GPA, u.rank, len(u.courses))).encode("utf-8")
-            }
-            sae.taskqueue.add_task("send_verify_sms_task", "/backend/sms", urllib.urlencode(wellinfo))
+
+            wellinfo = (WELCOME_MESSAGE_TPL % (u.name, u.GPA, u.rank, len(u.courses))).encode("utf-8")
+            wellinfo = base64.b64encode(wellinfo)
+            sae.taskqueue.add_task("send_verify_sms_task", "/backend/sms/%s" % u.usercode, wellinfo)
         else:
             self.redirect("/")
 
@@ -168,87 +166,17 @@ class SorryHandler(BaseHandler):
         self.render("sorry.html", error = error)
 
 
-# Task handlers
+# ----------------------------------------------------------------------
+# Brand new TaskHandlers
+
+
 class UpdateTaskHandler(BaseHandler):
     def get(self):
         # The users base is very large right now, so we have to change the prefix.
         ucs = self.kv.getkeys_by_prefix("1", limit=300)
         for uc in ucs:
-            payload = {
-                "uc": uc
-            }
-            sae.taskqueue.add_task("update_queue", "/backend/update", urllib.urlencode(payload))
+            sae.taskqueue.add_task("update_queue", "/backend/update/%s" % uc)
 
-    def post(self):
-        uc = self.get_argument("uc", None)
-        if not uc:
-            print "Update Error: missing argument: `uc`."
-            return
-
-        u = self.kv.get(uc.encode("utf-8"))
-        if not u or not u.verified or not u.name:
-            print "Update Error: can't get `u` by `uc` - %s." % uc
-            return
-
-        alpha.DATA_URL = "http://127.0.0.1:8888/data"
-        new_courses = u.update()
-
-        if new_courses:
-            # If `u.wx_id` exists, sms should not be sent.  Instead, we
-            # update `u.wx_push` with `new_courses` so that we can return
-            # it when users performs a score query by Weixin.
-            if u.wx_id:
-                u.wx_push.update(new_courses)
-                self.kv.set(u.usercode.encode("utf-8"), u)
-                return
-
-            self.kv.set(u.usercode.encode("utf-8"), u)
-            tosend = u"、".join([u"%s(%s)" % (v.subject, v.score) for v in new_courses.values()])
-
-            noteinfo = {
-                "n": u.mobileno,
-                "p": u.mobilepass,
-                "c": (NEW_COURSES_TPL % (u.name, len(new_courses), tosend, u.current_GPA, u.GPA, u.rank)).encode("utf-8")
-            }
-            sae.taskqueue.add_task("send_notification_sms_task", "/backend/sms", urllib.urlencode(noteinfo))
-
-    def check_xsrf_cookie(self):
-        # Taskqueue will POST to this URL.  There is no need to check XSRF
-        # in this case as the only argument is `uc` which is used to get a
-        # user in KVDB and won't cause any trouble.
-        pass
-
-
-class SMSTaskHandler(BaseHandler):
-    def post(self):
-        n = self.get_argument("n").encode("utf-8")  # Mobile number
-        p = self.get_argument("p").encode("utf-8")  # Fetion password
-        c = self.get_argument("c").encode("utf-8")  # SMS content
-
-        fetion = NovenFetion.Fetion(n, p)
-        while True:
-            try:
-                fetion.login()
-                fetion.send_sms(c)
-                fetion.logout()
-            except NovenFetion.AuthError, e:
-                print str(e)
-                return
-            except Exception, e:
-                print str(e)
-                continue
-            break
-
-        print "%s - SMS sent" % n
-
-    get = post
-
-    def check_xsrf_cookie(self):
-        pass
-
-
-# ----------------------------------------------------------------------
-# Brand new TaskHandlers
 
 class UpdateById(BaseHandler):
     def get(self, id):
@@ -285,12 +213,10 @@ class UpdateById(BaseHandler):
             self.kv.set(u.usercode.encode("utf-8"), u)
             tosend = u"、".join([u"%s(%s)" % (v.subject, v.score) for v in new_courses.values()])
 
-            noteinfo = {
-                "n": u.mobileno,
-                "p": u.mobilepass,
-                "c": (NEW_COURSES_TPL % (u.name, len(new_courses), tosend, u.current_GPA, u.GPA, u.rank)).encode("utf-8")
-            }
-            sae.taskqueue.add_task("send_notification_sms_task", "/backend/sms", urllib.urlencode(noteinfo))
+            noteinfo = (NEW_COURSES_TPL % (u.name, len(new_courses), tosend,
+                u.current_GPA, u.GPA, u.rank)).encode("utf-8")
+            noteinfo = base64.b64encode(noteinfo)
+            sae.taskqueue.add_task("send_notification_sms_task", "/backend/sms/%s" % u.usercode, noteinfo)
 
 
 class SMSById(BaseHandler):
@@ -311,7 +237,7 @@ class SMSById(BaseHandler):
 
         n = u.mobileno.encode("utf-8")  # Mobile number
         p = u.mobilepass.encode("utf-8")  # Fetion password
-        c = self.get_argument("c").encode("utf-8")  # SMS content
+        c = base64.b64decode(self.request.body)  # SMS content
 
         fetion = NovenFetion.Fetion(n, p)
         while True:

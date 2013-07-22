@@ -39,8 +39,6 @@ app = tornado.wsgi.WSGIApplication([
     (r"/weixin", noven.WxHandler),
 
     (r"/backend/update", noven.UpdateTaskHandler),
-    (r"/backend/sms", noven.SMSTaskHandler),
-
     (r"/backend/update/([0-9]{9,10})", noven.UpdateById),
     (r"/backend/sms/([0-9]{9,10})", noven.SMSById),
     # (r"/backend/upgrade", noven.UpgradeHandler),
