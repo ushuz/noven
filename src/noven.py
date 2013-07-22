@@ -85,8 +85,8 @@ class SignupHandler(BaseHandler):
             new_user = alpha.User(
                 ucode, upass, mcode, mpass
             )
-        except alpha.AuthError:
-            logging.info("%s - Sign-up failed due to alpha.AuthError.", ucode)
+        except alpha.AuthError as e:
+            logging.info("%s - Sign-up Failed: %s.", ucode, e)
             self.redirect("/sorry")
             return
 
@@ -104,16 +104,16 @@ class SignupHandler(BaseHandler):
                     fetion.login()
                     fetion.send_sms(c)
                     fetion.logout()
-                except NovenFetion.AuthError, e:
-                    print str(e)
+                except NovenFetion.AuthError as e:
+                    logging.error("%s - SMS Failed: %s.", ucode, e)
+                    logging.info("%s - Sign-up Failed: %s.", ucode, e)
                     self.redirect("/sorry")
                     return
-                except Exception, e:
-                    print str(e)
+                except Exception:
                     continue
                 break
             # If SMS is sent, log and move on.
-            print "%s - SMS sent" % n
+            logging.info("%s - SMS Sent: To %s.", ucode, n)
 
             # `set()` only takes str as key, WTF!
             # As a result, we have to encode the KEY 'cause it is unicode.'
@@ -136,6 +136,7 @@ class VerifyHandler(BaseHandler):
             self.kv.set(self.current_user.usercode.encode("utf-8"), self.current_user)
             self.redirect("/welcome")
         else:
+            logging.info("%s - Sign-up Failed: Wrong verification code.")
             self.redirect("/sorry")
 
 
@@ -149,6 +150,7 @@ class WelcomeHandler(BaseHandler):
             # Here `initialize()` could be async.
             u.initialize()
             self.kv.set(u.usercode.encode("utf-8"), u)
+            logging.info("%s - Sign-up Done.")
             wellinfo = {
                 "n": self.current_user.mobileno,
                 "p": self.current_user.mobilepass,
@@ -250,28 +252,25 @@ class SMSTaskHandler(BaseHandler):
 
 class UpdateById(BaseHandler):
     def get(self, id):
-        if not id:
-            # Id can't be empty.
-            logging.error("%s - Update failed: No Id.", "100000000")
-            return
-
         u = self.kv.get(id.encode("utf-8"))
         if not u:
             # Can't get user from KVDB.
-            logging.error("%s - Update failed: User Not Exists.", id)
+            logging.error("%s - Update Failed: User not exists.", id)
             return
         if not u.verified:
             # User is not verified.
-            logging.error("%s - Update failed: User Not Activated.", id)
+            logging.error("%s - Update Failed: User not activated.", id)
             return
 
         alpha.DATA_URL = "http://127.0.0.1:8888/data"
         try:
             new_courses = u.update()
-        except alpha.AuthError:
+        except alpha.AuthError as e:
             # User changed their password for sure. Deactivate them.
+            logging.error("%s - Update Failed: %s.", id, e)
             u.verified = False
             self.kv.set(u.usercode.encode("utf-8"), u)
+            logging.info("%s - Deactivated: User changed password.", id)
             return
 
         if new_courses:
@@ -296,23 +295,19 @@ class UpdateById(BaseHandler):
 
 class SMSById(BaseHandler):
     def post(self, id):
-        if not id:
-            # Id can't be empty.
-            logging.error("%s - SMS failed: No Id.", "100000000")
-            return
-
         u = self.kv.get(id.encode("utf-8"))
         if not u:
             # Can't get user from KVDB.
-            logging.error("%s - SMS failed: User Not Exists.", id)
+            logging.error("%s - SMS Failed: User not exists.", id)
             return
         if not u.verified:
             # User is not verified.
-            logging.error("%s - SMS failed: User Not Activated.", id)
+            logging.error("%s - SMS Failed: User not activated.", id)
             return
-        if not u.mobileno or not u.mobilepass:
+        if u.wx_id:
             # Can't send SMS.
-            logging.error("%s - SMS failed: User")
+            logging.error("%s - SMS Failed: User using Weixin.")
+            return
 
         n = u.mobileno.encode("utf-8")  # Mobile number
         p = u.mobilepass.encode("utf-8")  # Fetion password
@@ -325,18 +320,17 @@ class SMSById(BaseHandler):
                 fetion.send_sms(c)
                 fetion.logout()
             except NovenFetion.AuthError as e:
-                logging.error("%s - SMS failed: Wrong password for %s.", id, n)
+                logging.error("%s - SMS Failed: Wrong password for %s.", id, n)
                 # `NovenFetion.AuthError` means users had changed Fetion password
                 # for sure. Deactivate them.
                 u.verified = False
                 self.kv.set(id.encode("utf-8"), u)
-                logging.info("%s - Deactivate: User changed Fetion password.", id)
+                logging.info("%s - Deactivated: User changed Fetion password.", id)
                 return
-            except Exception as e:
-                logging.error("%s - SMS failed: %s. Retry.", id, e)
+            except Exception:
                 continue
             break
-        logging.info("%s - SMS sent to %s.", id, n)
+        logging.info("%s - SMS Sent: To %s.", id, n)
 
     def check_xsrf_cookie(self):
         pass
