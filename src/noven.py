@@ -11,6 +11,8 @@ import sae.kvdb
 import sae.taskqueue
 import tornado.web
 
+from tornado.escape import utf8, _unicode
+
 # Import the main libs for the app.
 from libs import alpha2 as alpha
 from libs import NovenFetion
@@ -170,7 +172,12 @@ class SorryHandler(BaseHandler):
 # Brand new TaskHandlers
 
 
-class UpdateTaskHandler(BaseHandler):
+class TaskHandler(tornado.web.RequestHandler):
+    def initialize(self, *args, **kwargs):
+        self.kv = sae.kvdb.KVClient()
+
+
+class UpdateTaskHandler(TaskHandler):
     def get(self):
         # The users base is very large right now, so we have to change the prefix.
         ucs = self.kv.getkeys_by_prefix("1", limit=300)
@@ -178,7 +185,7 @@ class UpdateTaskHandler(BaseHandler):
             sae.taskqueue.add_task("update_queue", "/backend/update/%s" % uc)
 
 
-class UpdateById(BaseHandler):
+class UpdateById(TaskHandler):
     def get(self, id):
         u = self.kv.get(id.encode("utf-8"))
         if not u:
@@ -219,7 +226,7 @@ class UpdateById(BaseHandler):
             sae.taskqueue.add_task("send_notification_sms_task", "/backend/sms/%s" % u.usercode, noteinfo)
 
 
-class SMSById(BaseHandler):
+class SMSById(TaskHandler):
     def post(self, id):
         u = self.kv.get(id.encode("utf-8"))
         if not u:
@@ -262,7 +269,7 @@ class SMSById(BaseHandler):
         pass
 
 
-class UpgradeHandler(BaseHandler):
+class UpgradeHandler(TaskHandler):
     def get(self):
         userlist = [ut[1] for ut in self.kv.get_by_prefix("") if isinstance(ut[1], alpha.User)]
         for user in userlist:
@@ -290,7 +297,7 @@ WX_NEW_RELEASE = u'''Hello，%s！有%d门课出分了：%s。当前学期您的
 WX_NOT_SIGNED = u'''Sorry，您尚未登记！请发送“ZC 学号 密码”（请用空格隔开，不包括引号）进行登记。'''
 
 
-class WxHandler(BaseHandler):
+class WxHandler(TaskHandler):
     def get(self):
         s = self.get_argument("echostr", None)
         if s:
