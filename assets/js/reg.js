@@ -3,12 +3,23 @@ var digitOnly = function(event) {return (/[\d]/.test(String.fromCharCode(event.k
 
 // Validate submit data.
 var checkForm = function() {
-    if (String($("form")[0].action).indexOf("verify") == -1) {
-        if ($("#uc").val().length!=9 || $("#mc").val().length!=11 || $("#up").val().length==0 || $("#mp").val().length==0) {
+    var form = document.getElementsByTagName("form")[0];
+    if (String(form.action).indexOf("verify") == -1) {
+        var uc = document.getElementById("uc");
+        var mc = document.getElementById("mc");
+        var up = document.getElementById("up");
+        var mp = document.getElementById("mp");
+        if (uc.value.length!=9 || up.value.length==0) {
             return false;
         }
+        if (mc || mp) {
+            if (mc.value.length!=11 || mp.value.length==0) {
+                return false;
+            }
+        }
     } else {
-        if ($("#vcode").val().length != 6) {
+        var vcode = document.getElementById("vcode");
+        if (vcode.value.length != 6) {
             return false;
         }
     }
@@ -16,9 +27,21 @@ var checkForm = function() {
 };
 
 // Binding events with functions.
-$(document).ready(function(){
-    $("#mc").bind("keypress", digitOnly);
-    $("#uc").bind("keypress", digitOnly);
-    $("form").bind("submit", checkForm);
-    $("form").bind("keyup", function() {if (checkForm()) {$(".btn").addClass("btnValid");} else {$(".btn").removeClass("btnValid");}});
-});
+var uc = document.getElementById("uc");
+var mc = document.getElementById("mc");
+var form = document.getElementsByTagName("form")[0];
+uc.onkeypress = digitOnly;
+mc.onkeypress = digitOnly;
+form.onsubmit = checkForm;
+form.onkeyup = function() {
+    btn = document.getElementsByClassName("btn")[0];
+    if (checkForm()) {
+        if (btn.className.indexOf("btnValid") == -1) {
+            btn.className += " btnValid";
+        }
+    } else {
+        if (btn.className.indexOf("btnValid") != -1) {
+            btn.className = btn.className.replace("btnValid", "");
+        }
+    }
+};

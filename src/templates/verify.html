@@ -2,9 +2,7 @@
 
 {% block title %}验证 - Noven{% end %}
 
-{% block head %}<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.0.min.js"></script>
-    <script type="text/javascript" src="{{ static_url('js/reg.js') }}"></script>
-    <link rel="stylesheet" type="text/css" href="{{ static_url('css/reg.css') }}" media="all"/>{% end %}
+{% block head %}<link rel="stylesheet" type="text/css" href="{{ static_url('css/reg.css') }}" media="all"/>{% end %}
 
 {% block body %}<div class="reg-box">
     <form action="/verify" method="post">
@@ -13,5 +11,6 @@
         <div class="reg-item"><label for="vcode">验证码</label><input id="vcode" class="input" name="vcode" type="text" maxlength="6" autocomplete="off" autofocus="autofocus"/></div>
         <div class="reg-item"><label>&nbsp;</label><input class="input btn" type="submit" value="验证"/></div>
     </form>
+    <script type="text/javascript" src="{{ static_url('js/reg.js') }}"></script>
     <div class="tips">&gt; 没收到验证码？<a href="/verify">刷新一下</a></div>
 </div>{% end %}
