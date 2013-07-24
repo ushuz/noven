@@ -9,10 +9,12 @@ var checkForm = function() {
         var mc = document.getElementById("mc");
         var up = document.getElementById("up");
         var mp = document.getElementById("mp");
+        var t = document.getElementById("t");
+        var s = document.getElementById("s");
         if (uc.value.length!=9 || up.value.length==0) {
             return false;
         }
-        if (mc || mp) {
+        if (!t && !s) {
             if (mc.value.length!=11 || mp.value.length==0) {
                 return false;
             }

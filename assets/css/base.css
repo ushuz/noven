@@ -22,7 +22,7 @@ a:hover {
 }
 
 #logo-container {
-    width: 540px;
+    max-width: 540px;
     padding-top: 12.5px;
     margin: auto;
     height: 87.5px;
@@ -31,8 +31,6 @@ a:hover {
 #logo {
     background: url("../img/logo_middle.png") no-repeat;
     height: 75px;
-    width: 200px;
-    margin-left: -20px;
     display: block;
 }
 
@@ -41,7 +39,7 @@ a:hover {
 #footer {
     margin: auto;
     color: white;
-    width: 540px;
+    max-width: 540px;
     border-top: 1px solid #606060;
     height: 35px;
     margin-top: 10px;
@@ -76,6 +74,12 @@ a:hover {
     color: white;
     padding-top: 60px;
     height: 420px;
-    width: 540px;
+    max-width: 480px;
     margin: auto;
+}
+
+.msg-box a {
+    text-decoration: none;
+    color: white;
+    font-size: 12px;
 }

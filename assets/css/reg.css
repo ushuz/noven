@@ -2,12 +2,11 @@
     color: white;
     padding-top: 60px;
     height: 420px;
-    width: 540px;
+    max-width: 480px;
     margin: auto;
 }
 
 .reg-box form {
-    width: 65%;
     float: left;
 }
 
@@ -21,7 +20,6 @@
     line-height: 30px;
     vertical-align: middle;
     display: inline-block;
-    float: left;
     margin-right: 20px;
 }
 
@@ -52,26 +50,26 @@
     font-size: 16px;
 }
 
-.msg-box {
-    text-align: left;
-    color: white;
-    padding-top: 60px;
-    height: 420px;
-    width: 540px;
-    margin: auto;
-}
-
-.msg-box a {
-    text-decoration: none;
-    color: white;
-    font-size: 12px;
-}
-
 .tips {
-    width: 35%;
     float: right;
     text-align: left;
     padding-top: 20px;
     font-size: 12px;
     color: white;
+}
+
+@media (max-width: 767px) {
+    .reg-box, .reg-box  form, .reg-box  label , .tips  {
+        width: 100%;
+        text-align: center;
+        padding-top: 0;
+    }
+
+    .reg-item  {
+        margin: 8px auto;
+    }
+
+    .reg-box  label  {
+        margin-right: 0;
+    }
 }
