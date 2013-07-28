@@ -177,10 +177,10 @@ class TaskHandler(tornado.web.RequestHandler):
         self.kv = sae.kvdb.KVClient()
 
 
-class UpdateTaskHandler(TaskHandler):
+class UpdateAll(TaskHandler):
     def get(self):
         # The users base is very large right now, so we have to change the prefix.
-        ucs = self.kv.getkeys_by_prefix("1", limit=300)
+        ucs = self.kv.getkeys_by_prefix("1", limit=1000)
         for uc in ucs:
             sae.taskqueue.add_task("update_queue", "/backend/update/%s" % uc)
 
@@ -263,7 +263,7 @@ class SMSById(TaskHandler):
             except Exception:
                 continue
             break
-        logging.info("%s - SMS Sent: To %s.", id, n)
+        logging.info("%s - SMS Sent to %s.", id, n)
 
     def check_xsrf_cookie(self):
         pass
