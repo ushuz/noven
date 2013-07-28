@@ -15,6 +15,7 @@ a:hover {
 }
 
 /* Header & Logo */
+
 #header {
     background-color:#38bfec;
     width:100%;
@@ -43,6 +44,9 @@ a:hover {
     border-top: 1px solid #606060;
     height: 35px;
     margin-top: 10px;
+
+    /* Hide Footer */
+    display: none;
 }
 
 #footer ul {
@@ -67,7 +71,7 @@ a:hover {
 
 }
 
-/* Msg-box style */
+/* msg-box Style */
 
 .msg-box {
     text-align: left;
@@ -78,8 +82,11 @@ a:hover {
     margin: auto;
 }
 
-.msg-box a {
-    text-decoration: none;
-    color: white;
-    font-size: 12px;
+/* Responsive msg-box */
+
+@media (max-width: 767px) {
+    .msg-box {
+        width: 80%;
+        height: 100%;
+    }
 }
