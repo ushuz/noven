@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}主页 - Noven{% end %}</title>
-    <link rel="stylesheet" type="text/css" href="{{ static_url('css/base.css')}}" media="all"/>
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/base.css')}}" />
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/normalize.css')}}" />
     {% block head %}{% end %}
 </head>
 <body>
@@ -19,7 +20,7 @@
             <li><a href="/help">帮助</a></li>
             <li><span id="copyright">© Noven</span></li>
         </ul>
-        
+
     </div>
 </body>
 </html>
