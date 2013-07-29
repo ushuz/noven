@@ -28,22 +28,9 @@ class AuthError(Exception):
 
 
 class Course(dict):
-    """A wrapper of the basic properties of a course."""
-    @property
-    def subject(self):
-        return self[u"subject"]
-
-    @property
-    def score(self):
-        return self[u"score"]
-
-    @property
-    def point(self):
-        return self[u"point"]
-
-    @property
-    def term(self):
-        return self[u"term"]
+    """Wrapper for a course."""
+    def __getattr__(self, property):
+        return self[property]
 
     def __eq__(self, other):
         for k, v in self.items():
