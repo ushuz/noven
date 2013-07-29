@@ -28,7 +28,13 @@ class AuthError(Exception):
 
 
 class Course(dict):
-    """Wrapper for a course."""
+    """Wrapper for a course.
+
+    :subject
+    :score
+    :point
+    :term
+    """
     def __getattr__(self, property):
         return self[property]
 
