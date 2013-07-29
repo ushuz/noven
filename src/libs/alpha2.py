@@ -96,10 +96,8 @@ class User(object):
         t = r.content.decode("gb2312")
 
         if u"密码不正确,请重新输入！" in t:
-            logging.debug("%s - [alpha2] Wrong password.", self.usercode)
             raise AuthError("Wrong password: %s" % self.password)
         if u"用户不存在！" in t:
-            logging.debug("%s - [alpha2] User doesn't exists.", self.usercode)
             raise AuthError("Wrong usercode: %s" % self.usercode)
 
     def _logout(self):
