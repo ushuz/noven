@@ -149,8 +149,8 @@ class WelcomeHandler(BaseHandler):
             self.render("welcome.html")
 
             u = self.current_user
-            # Here `initialize()` could be async.
-            u.initialize()
+            # Here `init()` could be async.
+            u.init()
             self.kv.set(u.usercode.encode("utf-8"), u)
             logging.info("%s - Sign-up Done.")
 
@@ -269,15 +269,9 @@ class SMSById(TaskHandler):
         pass
 
 
-class UpgradeHandler(TaskHandler):
+class TempHandler(TaskHandler):
     def get(self):
-        userlist = [ut[1] for ut in self.kv.get_by_prefix("") if isinstance(ut[1], alpha.User)]
-        for user in userlist:
-            u = alpha.User(user.usercode, user.password, user.mobileno, user.mobilepass)
-            u.name, u.GPA, u.rank, u.verified = user.name, user.GPA, user.rank, user.verified
-            u.initialize()
-            self.kv.set(u.usercode.encode("utf-8"), u)
-            self.write(u"<p>%s upgraded</p>" % u.usercode)
+        pass
 
 
 WX_SIGNUP_FAIL = u'''Sorry，登记失败了！请检查学号、密码是否输入有误。'''
@@ -376,10 +370,10 @@ class WxHandler(TaskHandler):
                 )
                 if u.name:
                     u.verified = True
-                    # `u.initialize()` takes time to finish, and it is likely
+                    # `u.init()` takes time to finish, and it is likely
                     # to exceed 5s time limit for a Weixin reply.  I can't
                     # find a solution right now, may there will be one later.
-                    u.initialize()
+                    u.init()
 
             if u.verified:
                 # `set()` only takes str as key, WTF!

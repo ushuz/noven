@@ -217,7 +217,7 @@ class User(object):
             }
         return self._open(DATA_URL, data=payload)
 
-    def initialize(self):
+    def init(self):
         """Initialize the User's data.
         """
         self._login()
