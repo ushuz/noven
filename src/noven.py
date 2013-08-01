@@ -19,9 +19,9 @@ from libs import NovenFetion
 from libs import NovenWx
 
 
-NEW_COURSES_TPL = u'''Hello，%s！有%d门课出分了：%s。当前学期您的学分积为%s，全学程您的学分积为%s，%s。[Noven]'''
-VCODE_MESSAGE_TPL = u'''Hello，%s！您的登记验证码：%s [Noven]'''
-WELCOME_MESSAGE_TPL = u'''Hello，%s！全学程您的学分积为%s，%s，共修过%d门课。加油！[Noven]'''
+NEW_COURSES_TPL = u'''Hello，%s！有%d门课出分了：%s。当前学期您的学分积为%s，全学程您的学分积为%s，%s。'''
+VCODE_MESSAGE_TPL = u'''Hello，%s！您的登记验证码：%s '''
+WELCOME_MESSAGE_TPL = u'''Hello，%s！全学程您的学分积为%s，%s，共修过%d门课。加油！'''
 
 
 def authenticated(method):
@@ -244,7 +244,7 @@ class SMSById(TaskHandler):
 
         n = u.mobileno.encode("utf-8")  # Mobile number
         p = u.mobilepass.encode("utf-8")  # Fetion password
-        c = base64.b64decode(self.request.body)  # SMS content
+        c = base64.b64decode(self.request.body) + "[Noven]"  # SMS content
 
         fetion = NovenFetion.Fetion(n, p)
         while True:
