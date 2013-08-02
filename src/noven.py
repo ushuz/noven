@@ -331,11 +331,12 @@ class WxHandler(TaskHandler):
             uc = self.kv.get(msg.fr.encode("utf-8"))
             if uc:
                 u = self.kv.get(uc)
-                u.verified = True
-                self.kv.set(uc, u)
-                logging.info("%s - Activated: Re-Subsciribe.", uc)
-                self.reply(msg, u"Hello，%s！欢迎回来！" % u.name)
-                return
+                if u.wx_id:
+                    u.verified = True
+                    self.kv.set(uc, u)
+                    logging.info("%s - Activated: Re-Subsciribe.", uc)
+                    self.reply(msg, u"Hello，%s！欢迎回来！" % u.name)
+                    return
             self.reply(msg, WX_GUIDE)
             return
 
@@ -346,9 +347,11 @@ class WxHandler(TaskHandler):
             uc = self.kv.get(msg.fr.encode("utf-8"))
             if uc:
                 u = self.kv.get(uc)
-                u.verified = False
-                self.kv.set(uc, u)
-                logging.info("%s - Deactivated: Unsubscribe.", uc)
+                if u.wx_id:
+                    u.verified = False
+                    self.kv.set(uc, u)
+                    logging.info("%s - Deactivated: Unsubscribe.", uc)
+                    return
 
         # Sign up logic.
         if isinstance(msg, NovenWx.SignupMessage):
