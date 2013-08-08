@@ -23,8 +23,13 @@ class Course(dict):
     :grade
     :term
     """
+    PROPERTIES = ("subject", "score", "point", "grade", "term")
+
     def __getattr__(self, property):
-        return self[property]
+        if property in self.PROPERTIES:
+            return self[property]
+        else:
+            return object.__getattribute__(self, property)
 
     def __eq__(self, other):
         for k, v in self.items():
