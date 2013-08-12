@@ -106,9 +106,13 @@ class User(object):
         r = self._open(LOGIN_URL, data=payload)
         t = r.content.decode("gb2312")
 
+        # `requests.Session` can NOT be serialized properly in KVDB. We must
+        # clean it up before save.
         if u"密码不正确,请重新输入！" in t:
+            self._logout()
             raise AuthError("Wrong password: %s" % self.password)
         if u"用户不存在！" in t:
+            self._logout()
             raise AuthError("Wrong usercode: %s" % self.usercode)
 
     def _logout(self):

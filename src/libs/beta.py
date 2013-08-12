@@ -92,6 +92,9 @@ class User(object):
 
         r = self._open(LOGIN_URL, payload)
         if not r.headers.has_key("accept-ranges"):
+            # `requests.Session` can NOT be serialized properly in KVDB. We must
+            # clean it up before save.
+            self._logout()
             raise AuthError("Wrong usercode or password: %s, %s" % (self.usercode, self.password))
 
     def _logout(self):
