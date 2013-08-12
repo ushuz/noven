@@ -179,8 +179,9 @@ class TaskHandler(tornado.web.RequestHandler):
 
 class UpdateAll(TaskHandler):
     def get(self):
+        marker = self.get_argument("marker", None)
         # The users base is very large right now, so we have to change the prefix.
-        ucs = self.kv.getkeys_by_prefix("1", limit=1000)
+        ucs = self.kv.getkeys_by_prefix("1", limit=1000, marker=marker)
         for uc in ucs:
             sae.taskqueue.add_task("update_queue", "/backend/update/%s" % uc)
 
