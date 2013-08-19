@@ -5,17 +5,21 @@
 {% block head %}<link rel="stylesheet" type="text/css" href="{{ static_url('css/reg.css') }}" media="all"/>{% end %}
 
 {% block body %}<div class="reg-box">
-    <form action="/" method="post">
-        {{ xsrf_form_html() }}
-        <div class="reg-item"><label for="uc">学号</label><input id="uc" class="input" name="uc" type="text" maxlength="9" autocomplete="off" /></div>
-        <div class="reg-item"><label for="up">密码</label><input id="up" class="input" name="up" type="password" /></div>
-        <div class="reg-item"><label for="mc">手机号码</label><input id="mc" class="input" name="mc" type="text" maxlength="11" autocomplete="off" /></div>
-        <div class="reg-item"><label for="mp">飞信密码</label><input id="mp" class="input" name="mp" type="password" /></div>
-        <div class="reg-item"><label>&nbsp;</label><input class="input btn" type="submit" value="登记" /></div>
-    </form>
-    <script type="text/javascript" src="{{ static_url('js/reg.js') }}"></script>
-    <div class="tips">
-        <p>&gt; Noven 帮您轻松掌握成绩动态</p>
-        <p>&gt; 已有{{ total }}人在使用 Noven</p>
-    </div>
+  <form action="/" method="post">
+    {{ xsrf_form_html() }}
+    {% if t and s %}
+    <input type="hidden" id="t" name="t" value="{{ t }}"/>
+    <input type="hidden" id="s" name="s" value="{{ s }}"/>
+    {% end %}
+    <div class="reg-item"><label for="uc">学号</label><input id="uc" class="input" name="uc" type="text" maxlength="9" autocomplete="off" /></div>
+    <div class="reg-item"><label for="up">密码</label><input id="up" class="input" name="up" type="password" /></div>
+    <div class="reg-item"><label for="mc">手机号码</label><input id="mc" class="input" name="mc" type="text" maxlength="11" autocomplete="off" /></div>
+    <div class="reg-item"><label for="mp">飞信密码</label><input id="mp" class="input" name="mp" type="password" /></div>
+    <div class="reg-item"><label>&nbsp;</label><input class="input btn" type="submit" value="登记" /></div>
+  </form>
+  <script type="text/javascript" src="{{ static_url('js/reg.js') }}"></script>
+  <div class="tips">
+    <p>&gt; Noven 帮您轻松掌握成绩动态</p>
+    <p>&gt; 已有{{ total }}人在使用 Noven</p>
+  </div>
 </div>{% end %}

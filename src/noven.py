@@ -75,7 +75,9 @@ tornado.web.ErrorHandler = ErrorHandler
 # Main handlers
 class SignupHandler(BaseHandler):
     def get(self):
-        self.render("signup.html", total=self.kv.get_info()["total_count"])
+        token = self.get_argument("t", None)
+        signed = self.get_argument("s", None)
+        self.render("signup.html", total=self.kv.get_info()["total_count"], t=token, s=signed)
 
     def post(self):
         ucode = self.get_argument("uc", None)
