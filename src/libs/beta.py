@@ -95,7 +95,9 @@ class User(object):
             # `requests.Session` can NOT be serialized properly in KVDB. We must
             # clean it up before save.
             self._logout()
-            raise AuthError("Wrong usercode or password: %s, %s" % (self.usercode, self.password))
+            if u"欠费".encode("gb2312") in r.content:
+                raise Exception("Wrong user state")
+            raise AuthError("Wrong usercode or password: %s %s" % (self.usercode, self.password))
 
     def _logout(self):
         # Session should be cleared in case of bad things.
