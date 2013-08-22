@@ -11,7 +11,7 @@ var checkForm = function() {
         var mp = document.getElementById("mp");
         var t = document.getElementById("t");
         var s = document.getElementById("s");
-        if (uc.value.length!=9 || up.value.length==0) {
+        if ((uc.value.length<9 && uc.value.length>10) || up.value.length==0) {
             return false;
         }
         if (!t && !s) {
