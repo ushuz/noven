@@ -110,10 +110,10 @@ class User(object):
         # clean it up before save.
         if u"密码不正确,请重新输入！" in t:
             self._logout()
-            raise AuthError("Wrong password: %s" % self.password)
+            raise AuthError("Wrong password.")
         if u"用户不存在！" in t:
             self._logout()
-            raise AuthError("Wrong usercode: %s" % self.usercode)
+            raise AuthError("Wrong usercode.")
 
     def _logout(self):
         # Session should be cleared in case of bad things.
