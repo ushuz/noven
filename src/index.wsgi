@@ -9,6 +9,7 @@ import tornado.wsgi
 # Import handlers
 import noven    # Main logic
 import admin    # Administration
+import api
 
 # Global logging settings
 logging.basicConfig(format="%(levelname).1s [%(asctime).19s] %(message)s", level=logging.INFO)
@@ -25,13 +26,7 @@ settings = {
     "login_url": "/"
 }
 
-if "SERVER_SOFTWARE" not in os.environ:
-    settings["static_path"] = os.path.join(os.path.dirname(__file__), "../assets")
-
-    # Set logging level to DEBUG when run locally
-    logging.getLogger().setLevel(logging.DEBUG)
-
-app = tornado.wsgi.WSGIApplication([
+handlers = [
     (r"/", noven.SignupHandler),
     (r"/welcome", noven.WelcomeHandler),
     (r"/verify", noven.VerifyHandler),
@@ -46,6 +41,21 @@ app = tornado.wsgi.WSGIApplication([
     (r"/admin", admin.Main),
     (r"/admin/user/([0-9]{9,10})", admin.UsersManagement),
     (r"/admin/msg", admin.GroupMessage)
-], **settings)
+]
 
+if "SERVER_SOFTWARE" not in os.environ:
+    # Local static path
+    settings["static_path"] = os.path.join(os.path.dirname(__file__), "../assets")
+
+    # Disable CSRF defense in convenience of testing
+    settings["xsrf_cookies"] = False
+
+    # Set logging level to DEBUG when run locally
+    logging.getLogger().setLevel(logging.DEBUG)
+
+    # API for test
+    handlers.append((r"/users/([0-9]{9,10}).json", api.UserById))
+
+
+app = tornado.wsgi.WSGIApplication(handlers, **settings)
 application = sae.create_wsgi_app(app)

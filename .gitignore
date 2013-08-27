@@ -185,3 +185,6 @@ zip.bat
 
 # Static for online
 static
+
+# Tests
+test*

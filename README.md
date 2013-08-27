@@ -4,9 +4,7 @@
 
 
 ##TODO
-* [!] deactive修改过密码的用户
 * [ ] RESTful
-* [ ] 优化微信的注册流程
 * [ ] Better Log
 * [ ] Better Admin
 
@@ -16,6 +14,8 @@
 * [x] 优化data retrieve
 * [x] 收到微信unsubscribe事件时进行清理工作
 * [x] 对成绩更新（比如实验课出分、补考出分）也进行响应（alpha.Course.__eq__）
+* [x] deactive修改过密码的用户
+* [x] 优化微信的注册流程
 
 ##CREDIT
 ###PyFetion
