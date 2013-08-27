@@ -1,10 +1,9 @@
 # -*- coding:utf-8 -*-
 
-import urllib
-import hashlib
-import functools
-import logging
 import base64
+import functools
+import hashlib
+import logging
 
 import sae
 import sae.kvdb
@@ -15,6 +14,7 @@ from tornado.escape import utf8, _unicode
 
 # Import the main libs for the app.
 from libs import alpha2 as alpha
+from libs import beta
 from libs import NovenFetion
 from libs import NovenWx
 
@@ -22,6 +22,10 @@ from libs import NovenWx
 NEW_COURSES_TPL = u'''Hello，%s！有%d门课出分了：%s。当前学期您的学分积为%s，全学程您的学分积为%s，%s。'''
 VCODE_MESSAGE_TPL = u'''Hello，%s！您的登记验证码：%s '''
 WELCOME_MESSAGE_TPL = u'''Hello，%s！全学程您的学分积为%s，%s，共修过%d门课。加油！'''
+
+
+# ----------------------------------------------------------------------
+# Useful little helpers
 
 
 def authenticated(method):
@@ -35,6 +39,16 @@ def authenticated(method):
         return method(self, *args, **kwargs)
     return wrapper
 
+
+def create_signature(msg):
+    secret = "IAmACoward"
+    if not msg:
+        return None
+    return hashlib.sha1(secret+utf8(msg)).hexdigest()
+
+
+# ----------------------------------------------------------------------
+# Base handlers
 
 class BaseHandler(tornado.web.RequestHandler):
     def initialize(self, *args, **kwargs):
@@ -72,36 +86,74 @@ class ErrorHandler(BaseHandler):
 tornado.web.ErrorHandler = ErrorHandler
 
 
+# ----------------------------------------------------------------------
 # Main handlers
+
+
 class SignupHandler(BaseHandler):
     def get(self):
-        token = self.get_argument("t", None)
-        signed = self.get_argument("s", None)
-        self.render("signup.html", total=self.kv.get_info()["total_count"], t=token, s=signed)
+        t = self.get_argument("t", None)
+        s = self.get_argument("s", None)
+        self.render("signup.html", total=self.kv.get_info()["total_count"], t=t, s=s)
 
     def post(self):
+        t = self.get_argument("t", None)
+        s = self.get_argument("s", None)
         ucode = self.get_argument("uc", None)
         upass = self.get_argument("up", None)
         mcode = self.get_argument("mc", None)
         mpass = self.get_argument("mp", None)
 
-        self.set_secure_cookie("uc", ucode)
-        try:
-            new_user = alpha.User(
-                ucode, upass, mcode, mpass
-            )
-        except alpha.AuthError as e:
-            logging.info("%s - Sign-up Failed: %s.", ucode, e)
+        # Check ucode at the very first.
+        if ucode and ucode.isdigit():
+            pass
+        else:
             self.redirect("/sorry")
             return
 
-        if new_user.name:
+        # Check token and signature.
+        if create_signature(t) != s:
+            # If failed on consistency, then fallback to fetion-only sign-up.
+            # Under such condition, mcode is required.
+            t = None
+            if not mcode:
+                self.redirect("/sorry")
+                return
+
+        # Check mobile.
+        if mcode and len(mcode) != 11 and mcode.isdigit():
+            self.redirect("/sorry")
+            return
+
+        try:
+            # 9 digits for BJFU
+            if len(ucode) == 9:
+                new_user = alpha.User(
+                    ucode, upass, mcode, mpass, t
+                )
+            # 10 digits for ZJU
+            elif len(ucode) == 10:
+                new_user = beta.User(
+                    ucode, upass, mcode, mpass, t
+                )
+            # Invalid usercode
+            else:
+                raise Exception("Invalid usercode.")
+        except Exception as e:
+            logging.info("%s - Sign-up Failed: %s", ucode, e)
+            self.redirect("/sorry")
+            return
+
+        self.set_secure_cookie("uc", ucode)
+
+        if new_user.mobileno:
             # If user's usercode and password are OK, then we should send
             # verification SMS.  SMS should be sent synchronously in order to
-            # redirect the user to error page when AuthError occurs.
+            # redirect the user to error page when NovenFetion.AuthError occurs.
             n = new_user.mobileno.encode("utf-8")
             p = new_user.mobilepass.encode("utf-8")
-            c = (VCODE_MESSAGE_TPL % (new_user.name, hashlib.sha1(self._new_cookie["uc"].value).hexdigest()[:6])).encode("utf-8")
+            c = utf8(VCODE_MESSAGE_TPL % (new_user.name,
+                hashlib.sha1(self._new_cookie["uc"].value).hexdigest()[:6]))+"[Noven]"
 
             fetion = NovenFetion.Fetion(n, p)
             while True:
@@ -120,9 +172,14 @@ class SignupHandler(BaseHandler):
             logging.info("%s - SMS Sent: To %s.", ucode, n)
 
             # `set()` only takes str as key, WTF!
-            # As a result, we have to encode the KEY 'cause it is unicode.'
+            # As a result, we have to encode the KEY cause it is unicode.
             self.kv.set(new_user.usercode.encode("utf-8"), new_user)
             self.redirect("/verify")
+        elif new_user.wx_id:
+            new_user.verified = True
+            self.kv.set(utf8(new_user.usercode), new_user)
+            self.kv.set(utf8(new_user.wx_id), utf8(new_user.usercode))
+            self.redirect("/welcome")
         else:
             self.redirect("/sorry")
 
@@ -132,15 +189,17 @@ class VerifyHandler(BaseHandler):
     def get(self):
         self.render("verify.html")
 
+    @authenticated
     def post(self):
         vcode = self.get_argument("vcode", None)
 
         if vcode.lower() == hashlib.sha1(self.get_cookie("uc")).hexdigest()[:6]:
             self.current_user.verified = True
-            self.kv.set(self.current_user.usercode.encode("utf-8"), self.current_user)
+            self.kv.set(utf8(self.current_user.usercode), self.current_user)
             self.redirect("/welcome")
         else:
-            logging.info("%s - Sign-up Failed: Wrong verification code.")
+            logging.info("%s - Sign-up Failed: Wrong verification code.",
+                self.current_user.usercode)
             self.redirect("/sorry")
 
 
@@ -154,19 +213,25 @@ class WelcomeHandler(BaseHandler):
             # Here `init()` could be async.
             u.init()
             self.kv.set(u.usercode.encode("utf-8"), u)
-            logging.info("%s - Sign-up Done.")
 
-            wellinfo = (WELCOME_MESSAGE_TPL % (u.name, u.GPA, u.rank, len(u.courses))).encode("utf-8")
-            wellinfo = base64.b64encode(wellinfo)
-            sae.taskqueue.add_task("send_verify_sms_task", "/backend/sms/%s" % u.usercode, wellinfo)
+            if u.mobileno:
+                wellinfo = utf8(WELCOME_MESSAGE_TPL % (u.name, u.GPA, u.rank, len(u.courses)))
+                wellinfo = base64.b64encode(wellinfo)
+                sae.taskqueue.add_task(
+                    "send_verify_sms_task",
+                    "/backend/sms/%s" % u.usercode,
+                    wellinfo
+                )
+
+            logging.info("%s - Sign-up Done.", u.usercode)
         else:
             self.redirect("/")
 
 
 class SorryHandler(BaseHandler):
     def get(self):
-        error = "请检查学号、密码、手机号、飞信密码及验证码是否输入有误。<br/>" \
-                "若您已不记得飞信密码，可以编辑新密码发送到12520050重置您的飞信密码。"
+        error = "请检查学号、教务系统密码、手机号码、飞信密码输入是否有误。<br/>" \
+                "若您已不记得飞信密码，请编辑新密码发送到12520050重置您的飞信密码。"
         self.render("sorry.html", error = error)
 
 
@@ -226,7 +291,11 @@ class UpdateById(TaskHandler):
             noteinfo = (NEW_COURSES_TPL % (u.name, len(new_courses), tosend,
                 u.current_GPA, u.GPA, u.rank)).encode("utf-8")
             noteinfo = base64.b64encode(noteinfo)
-            sae.taskqueue.add_task("send_notification_sms_task", "/backend/sms/%s" % u.usercode, noteinfo)
+            sae.taskqueue.add_task(
+                "send_notification_sms_task",
+                "/backend/sms/%s" % u.usercode,
+                noteinfo
+            )
 
 
 class SMSById(TaskHandler):
@@ -239,10 +308,6 @@ class SMSById(TaskHandler):
         if not u.verified:
             # User is not verified.
             logging.error("%s - SMS Failed: User not activated.", id)
-            return
-        if u.wx_id:
-            # Can't send SMS.
-            logging.error("%s - SMS Failed: User using Weixin.")
             return
 
         n = u.mobileno.encode("utf-8")  # Mobile number
