@@ -9,6 +9,7 @@ import sae
 import sae.kvdb
 import sae.taskqueue
 import tornado.web
+import tornado.template
 
 from tornado.escape import utf8, _unicode
 
@@ -45,6 +46,11 @@ def create_signature(msg):
     if not msg:
         return None
     return hashlib.sha1(secret+utf8(msg)).hexdigest()
+
+
+def create_message(tpl, **kw):
+    t = tornado.template.Template(tpl)
+    return t.generate(**kw)
 
 
 # ----------------------------------------------------------------------
@@ -215,7 +221,7 @@ class WelcomeHandler(BaseHandler):
             self.kv.set(u.usercode.encode("utf-8"), u)
 
             if u.mobileno:
-                wellinfo = utf8(WELCOME_MESSAGE_TPL % (u.name, u.GPA, u.rank, len(u.courses)))
+                wellinfo = create_message(u.TPL_WELCOME, u=u)
                 wellinfo = base64.b64encode(wellinfo)
                 sae.taskqueue.add_task(
                     "send_verify_sms_task",
@@ -286,10 +292,8 @@ class UpdateById(TaskHandler):
                 return
 
             self.kv.set(u.usercode.encode("utf-8"), u)
-            tosend = u"、".join([u"%s(%s)" % (v.subject, v.score) for v in new_courses.values()])
 
-            noteinfo = (NEW_COURSES_TPL % (u.name, len(new_courses), tosend,
-                u.current_GPA, u.GPA, u.rank)).encode("utf-8")
+            noteinfo = create_message(u.TPL_NEW_COURSES, u=u, new_courses=new_courses)
             noteinfo = base64.b64encode(noteinfo)
             sae.taskqueue.add_task(
                 "send_notification_sms_task",

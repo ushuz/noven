@@ -57,6 +57,10 @@ class User(object):
     global NAME_URL
     global DATA_URL
 
+    TPL_NEW_COURSES = u"""Hello，{{ u.name }}！有{{ len(new_courses) }}门课出分了：{{ u"、".join([u"%s(%s)" % (v.subject, v.score) for v in new_courses.values()]) }}。当前学期您的学分积为{{ u.current_GPA }}，全学程您的学分积为{{ u.GPA }}，{{ u.rank }}。"""
+    TPL_WELCOME = u"""Hello，{{ u.name }}！全学程您的学分积为{{ u.GPA }}，{{ u.rank }}，共修过{{ len(u.courses) }}门课。加油！"""
+    TPL_NO_UPDATE = u"""Hello，{{ u.name }}！最近没有新课程出分。当前学期您的学分积为{{ u.current_GPA }}，全学程您的学分积为{{ u.GPA }}，{{ u.rank }}。"""
+
     def __init__(self, ucode, upass, mcode=None, mpass=None, wid=None):
         self.usercode = ucode
         self.password = upass
