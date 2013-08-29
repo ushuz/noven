@@ -44,7 +44,7 @@ class User(object):
 
     TPL_NEW_COURSES = u"""Hello，{{ u.name }}！有{{ len(new_courses) }}门课出分了：{{ u"、".join([u"%s(%s,%s)" % (v.subject, v.score, v.grade) for v in new_courses.values()]) }}，当前您的平均绩点为{{ u.GPA }}。"""
     TPL_WELCOME = u"""Hello，{{ u.name }}！当前您的平均绩点为{{ u.GPA }}，共修过{{ len(u.courses) }}门课。加油！"""
-    TPL_NO_UPDATE = u"""Hello，{{ u.name }}！最近没有新课程出分。当前您的平均绩点为{{ u.GPA }}，。"""
+    TPL_NO_UPDATE = u"""Hello，{{ u.name }}！最近没有新课程出分。当前您的平均绩点为{{ u.GPA }}。"""
 
     def __init__(self, ucode, upass, mcode=None, mpass=None, wid=None):
         self.usercode = ucode
