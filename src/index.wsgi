@@ -36,7 +36,6 @@ handlers = [
     (r"/backend/update", noven.UpdateAll),
     (r"/backend/update/([0-9]{9,10})", noven.UpdateById),
     (r"/backend/sms/([0-9]{9,10})", noven.SMSById),
-    # (r"/backend/something", noven.TempHandler),
 
     (r"/admin", admin.Main),
     (r"/admin/user/([0-9]{9,10})", admin.UsersManagement),
@@ -54,6 +53,7 @@ if "SERVER_SOFTWARE" not in os.environ:
     logging.getLogger().setLevel(logging.DEBUG)
 
     # API for test
+    handlers.append((r"/backend/something", api.Temp))
     handlers.append((r"/users/([0-9]{9,10}).json", api.UserById))
 
 
