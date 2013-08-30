@@ -42,9 +42,9 @@ class User(object):
     global LOGIN_URL
     global DATA_URL
 
-    TPL_NEW_COURSES = u"""Hello，{{ u.name }}！有{{ len(new_courses) }}门课出分了：{{ u"、".join([u"%s(%s,%s)" % (v.subject, v.score, v.grade) for v in new_courses.values()]) }}，当前您的平均绩点为{{ u.GPA }}。"""
+    TPL_NEW_COURSES = u"""Hello，{{ u.name }}！有{{ len(new_courses) }}门课出分了：{{ u"、".join([u"%s(%s,%s)" % (v.subject, v.score, v.grade) for v in new_courses.values()]) }}，当前您的平均绩点为{{ u.GPA }}，已修学分{{ sum([float(v.point) for v in u.courses.values()]) }}。"""
     TPL_WELCOME = u"""Hello，{{ u.name }}！当前您的平均绩点为{{ u.GPA }}，共修过{{ len(u.courses) }}门课。加油！"""
-    TPL_NO_UPDATE = u"""Hello，{{ u.name }}！最近没有新课程出分。当前您的平均绩点为{{ u.GPA }}。"""
+    TPL_NO_UPDATE = u"""Hello，{{ u.name }}！最近没有新课程出分。当前您的平均绩点为{{ u.GPA }}，已修学分{{ sum([float(v.point) for v in u.courses.values()]) }}。"""
 
     def __init__(self, ucode, upass, mcode=None, mpass=None, wid=None):
         self.usercode = ucode
@@ -57,7 +57,7 @@ class User(object):
 
         self.name = None
         self.courses = {}
-        self.GPA = None
+        self.GPA = u"0"
 
         self.verified = False
 

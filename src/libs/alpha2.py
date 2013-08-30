@@ -72,9 +72,9 @@ class User(object):
 
         self.name = None
         self.courses = {}
-        self.GPA = None
-        self.current_GPA = None
-        self.rank = None
+        self.GPA = u"0"
+        self.current_GPA = u"0"
+        self.rank = u"暂无排名"
         self.verified = False
 
         self._session = None
@@ -165,13 +165,18 @@ class User(object):
             # IndexError sometimes occurs when saving rank.  It appears that
             # malformed response we received is to blame, i.e. `r.content` is
             # not completed.
-            logging.error("%s - [alpha2] `soup.findAll` returns empty list.", self.usercode)
+            logging.error("%s - Something wrong with the returning data.", self.usercode)
             return {}
 
         # Save the rank calculated by JWXT.
-        self.rank = l[-1].contents[1].contents[2].string[5:] \
-            if u"全学程" in l[-1].contents[1].contents[2].string \
-            else l[-1].contents[1].contents[3].string[5:]
+        # If failed, turn to default.  Most probably, the user is in his first term.
+        try:
+            self.rank = l[-1].contents[1].contents[2].string[5:] \
+                if u"全学程" in l[-1].contents[1].contents[2].string \
+                else l[-1].contents[1].contents[3].string[5:]
+        except IndexError as e:
+            logging.error("%s - Can't get rank for the user.", self.usercode)
+
         logging.debug("%s - [alpha2] Rank saved: %s", self.usercode, self.rank)
 
         # Delete unnecessary data.

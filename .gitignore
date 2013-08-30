@@ -188,3 +188,4 @@ static
 
 # Tests
 test*
+api.py
