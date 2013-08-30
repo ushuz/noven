@@ -31,14 +31,13 @@ def parse(xmlstring):
                 # A guide message should be returned at last.
                 return HelloMessage(to, fr, time)
 
-            if content.split()[0].lower() == u"zc":
-                # Users are signing up through weixin.  In such case, we
-                # should take down `uc` & `up` for later usage.
-                try:
-                    uc, up = content.split()[1:]
-                except ValueError:
-                    return QueryMessage(to, fr, time)
-                return SignupMessage(to, fr, time, uc, up)
+            if content == u"菜单":
+                # Requesting menu.
+                return MenuMessage(to, fr, time)
+
+            if content.startswith(u":") or content.startswith(u"："):
+                # Users try to contact.
+                return BlahMessage(to, fr, time, content)
 
         if type == u"event":
             # API changed since 20130326, WTF!
@@ -50,31 +49,18 @@ def parse(xmlstring):
                 return HelloMessage(to, fr, time)
             elif event == u"unsubscribe":
                 return ByeMessage(to, fr, time)
-            else:
-                return QueryMessage(to, fr, time)
 
         return QueryMessage(to, fr, time)
 
-        # `MsgId` is of no use at present.
+        # `MsgId` is of no use for now.
         # id = et.find("MsgId").text.decode("utf-8")
-    except Exception, e:
+    except Exception as e:
         print e
         return
 
 
-tpl = u'''<xml><ToUserName><![CDATA[%s]]></ToUserName><FuncFlag>0</FuncFlag>
-<FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%d</CreateTime>
-<MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content></xml>'''
-
-
-def reply(received, content):
-    to = received.fr
-    fr = received.to
-    return tpl % (to, fr, int(time.time()), content)
-
-
 class WxMessage(object):
-    '''Base class for weixin message.'''
+    """Base class for weixin messages."""
     def __init__(self, to, fr, time):
         self.to = to
         self.fr = fr
@@ -82,7 +68,7 @@ class WxMessage(object):
 
 
 class HelloMessage(WxMessage):
-    '''When received, a guide message should be returned to the user.'''
+    """When received, a guide message should be returned to the user."""
 
 
 class ByeMessage(WxMessage):
@@ -90,16 +76,20 @@ class ByeMessage(WxMessage):
 
 
 class QueryMessage(WxMessage):
-    '''When received, [已更新] or [无更新] or [未注册] should be returned.'''
+    """When received, [已更新] or [无更新] or [未注册] should be returned."""
 
 
-class SignupMessage(WxMessage):
-    def __init__(self, to, fr, time, uc, up):
+class MenuMessage(WxMessage):
+    """When received, menu should be returned."""
+
+
+class BlahMessage(WxMessage):
+    """Users try to contact."""
+    def __init__(self, to, fr, time, content):
         self.to = to
         self.fr = fr
         self.time = time
-        self.usercode = uc
-        self.password = up
+        self.content = content
 
 
 if __name__ == "__main__":

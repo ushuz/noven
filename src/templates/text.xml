@@ -1,0 +1,8 @@
+{% import time %}
+<xml>
+  <ToUserName><![CDATA[{{ to.fr }}]]></ToUserName>
+  <FromUserName><![CDATA[{{ to.to }}]]></FromUserName>
+  <CreateTime>{{ int(time.time()) }}</CreateTime>
+  <MsgType><![CDATA[text]]></MsgType>
+  <Content><![CDATA[{{ content }}]]></Content>
+</xml>

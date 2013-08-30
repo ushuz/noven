@@ -1,0 +1,22 @@
+{% import time %}
+<xml>
+  <ToUserName><![CDATA[{{ to.fr }}]]></ToUserName>
+  <FromUserName><![CDATA[{{ to.to }}}]]></FromUserName>
+  <CreateTime>{{ int(time.time()) }}</CreateTime>
+  <MsgType><![CDATA[news]]></MsgType>
+  <ArticleCount>2</ArticleCount>
+  <Articles>
+    <item>
+      <Title><![CDATA[点击「欢迎」 了解更多]]></Title>
+      <Description><![CDATA[指南]]></Description>
+      <PicUrl><![CDATA[http://mmsns.qpic.cn/mmsns/QhYwSe3HJUSOOGDRsia7Y5EvUJ7WmanZUgxvuos2NLytiaQZxLRaiaZOg/0]]></PicUrl>
+      <Url><![CDATA[http://mp.weixin.qq.com/mp/appmsg/show?__biz=MjM5NzA3NTUwMQ==&appmsgid=10000004&itemidx=1&sign=f225ba1c6bc27f8094c866a9180a2e3a]]></Url>
+    </item>
+    <item>
+      <Title><![CDATA[登记]]></Title>
+      <Description><![CDATA[登记]]></Description>
+      <PicUrl><![CDATA[http://mmsns.qpic.cn/mmsns/QhYwSe3HJUSOOGDRsia7Y5EvUJ7WmanZUTOmkUjhzRiaHu1Bd9lx0LlA/0]]></PicUrl>
+      <Url><![CDATA[http://noven.sinaapp.com/?t={{ t }}&s={{ s }}]]></Url>
+    </item>
+  </Articles>
+</xml>
