@@ -244,6 +244,11 @@ class User(object):
         # Initializing data.
         # Get `courses` and `GPA`
         r = self._fetch_all()
+
+        # If user not regisered yet, then we can't fetch any data.
+        if u"你还没有学期注册，无法使用本模块！" in r.content.decode("gb2312"):
+            raise Exception("User not registered.")
+
         self._get_courses(r)
         self._get_GPA(r, True)
 
@@ -263,6 +268,11 @@ class User(object):
 
         # Get `new_courses`
         r = self._fetch_now()
+
+        # If user not regisered yet, then we can't fetch any data.
+        if u"你还没有学期注册，无法使用本模块！" in r.content.decode("gb2312"):
+            raise Exception("User not registered.")
+
         new_courses = self._get_courses(r)
 
         # Only if we got new courses should we update GPAs.
