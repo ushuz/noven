@@ -251,7 +251,9 @@ class User(object):
         r = self._fetch_all()
 
         # If user not regisered yet, then we can't fetch any data.
+        # Remember to ogout before raise.
         if u"你还没有学期注册，无法使用本模块！" in r.content.decode("gb2312"):
+            self._logout()
             raise Exception("User not registered.")
 
         self._get_courses(r)
@@ -275,7 +277,9 @@ class User(object):
         r = self._fetch_now()
 
         # If user not regisered yet, then we can't fetch any data.
+        # Remember to ogout before raise.
         if u"你还没有学期注册，无法使用本模块！" in r.content.decode("gb2312"):
+            self._logout()
             raise Exception("User not registered.")
 
         new_courses = self._get_courses(r)
