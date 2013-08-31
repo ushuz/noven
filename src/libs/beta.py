@@ -95,7 +95,7 @@ class User(object):
         }
 
         r = self._open(LOGIN_URL, payload)
-        if not r.headers.has_key("accept-ranges"):
+        if not "grxx" in r.content:
             # `requests.Session` can NOT be serialized properly in KVDB. We must
             # clean it up before save.
             self._logout()
