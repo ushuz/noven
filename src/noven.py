@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 
+import os
 import base64
 import functools
 import hashlib
@@ -18,11 +19,6 @@ from libs import alpha2 as alpha
 from libs import beta
 from libs import NovenFetion
 from libs import NovenWx
-
-
-NEW_COURSES_TPL = u'''Hello，%s！有%d门课出分了：%s。当前学期您的学分积为%s，全学程您的学分积为%s，%s。'''
-VCODE_MESSAGE_TPL = u'''Hello，%s！您的登记验证码：%s '''
-WELCOME_MESSAGE_TPL = u'''Hello，%s！全学程您的学分积为%s，%s，共修过%d门课。加油！'''
 
 
 # ----------------------------------------------------------------------
@@ -50,7 +46,7 @@ def create_signature(msg):
 
 def create_message(tpl, **kw):
     t = tornado.template.Template(tpl)
-    return t.generate(**kw)
+    return _unicode(t.generate(**kw))
 
 
 # ----------------------------------------------------------------------
@@ -152,14 +148,15 @@ class SignupHandler(BaseHandler):
 
         self.set_secure_cookie("uc", ucode)
 
+        TPL_VCODE = u'''Hello，%s！您的登记验证码：%s [Noven]'''
         if new_user.mobileno:
             # If user's usercode and password are OK, then we should send
             # verification SMS.  SMS should be sent synchronously in order to
             # redirect the user to error page when NovenFetion.AuthError occurs.
             n = new_user.mobileno.encode("utf-8")
             p = new_user.mobilepass.encode("utf-8")
-            c = utf8(VCODE_MESSAGE_TPL % (new_user.name,
-                hashlib.sha1(self._new_cookie["uc"].value).hexdigest()[:6]))+"[Noven]"
+            c = utf8(TPL_VCODE % (new_user.name,
+                hashlib.sha1(self._new_cookie["uc"].value).hexdigest()[:6]))
 
             fetion = NovenFetion.Fetion(n, p)
             while True:
@@ -168,7 +165,7 @@ class SignupHandler(BaseHandler):
                     fetion.send_sms(c)
                     fetion.logout()
                 except NovenFetion.AuthError as e:
-                    logging.info("%s - Sign-up Failed: %s.", ucode, e)
+                    logging.info("%s - Sign-up Failed: %s", ucode, e)
                     self.redirect("/sorry")
                     return
                 except Exception:
@@ -198,30 +195,34 @@ class VerifyHandler(BaseHandler):
     @authenticated
     def post(self):
         vcode = self.get_argument("vcode", None)
+        u = self.current_user
 
         if vcode.lower() == hashlib.sha1(self.get_cookie("uc")).hexdigest()[:6]:
-            self.current_user.verified = True
-            self.kv.set(utf8(self.current_user.usercode), self.current_user)
+            u.verified = True
+            self.kv.set(utf8(u.usercode), u)
             self.redirect("/welcome")
         else:
             logging.info("%s - Sign-up Failed: Wrong verification code.",
-                self.current_user.usercode)
+                u.usercode)
             self.redirect("/sorry")
 
 
 class WelcomeHandler(BaseHandler):
     @authenticated
     def get(self):
-        if self.current_user.verified:
+        u = self.current_user
+        if u.verified:
             self.render("welcome.html")
 
-            u = self.current_user
             # Here `init()` could be async.
-            u.init()
+            try:
+                u.init()
+            except Exception as e:
+                logging.error("%s - Init Failed: %s", u.usercode, e)
             self.kv.set(u.usercode.encode("utf-8"), u)
 
             if u.mobileno:
-                wellinfo = create_message(u.TPL_WELCOME, u=u)
+                wellinfo = utf8(create_message(u.TPL_WELCOME, u=u))
                 wellinfo = base64.b64encode(wellinfo)
                 sae.taskqueue.add_task(
                     "send_verify_sms_task",
@@ -267,39 +268,44 @@ class UpdateById(TaskHandler):
             logging.error("%s - Update Failed: User not exists.", id)
             return
         if not u.verified:
-            # User is not verified.
+            # User is not activated.
             logging.error("%s - Update Failed: User not activated.", id)
             return
 
-        alpha.DATA_URL = "http://127.0.0.1:8888/data"
+        # Debug settings
+        if "SERVER_SOFTWARE" not in os.environ:
+            alpha.DATA_URL = "http://127.0.0.1:8888/data"
+            beta.DATA_URL = "http://127.0.0.1:8888/xscj.aspx?xh=%s"
+
         try:
             new_courses = u.update()
-        except alpha.AuthError as e:
+        except (alpha.AuthError, beta.AuthError) as e:
             # User changed their password for sure. Deactivate them.
-            logging.error("%s - Update Failed: %s.", id, e)
             u.verified = False
             self.kv.set(u.usercode.encode("utf-8"), u)
             logging.info("%s - Deactivated: User changed password.", id)
+        except Exception as e:
+            logging.error("%s - Update Failed: %s", id, e)
             return
 
         if new_courses:
-            # If `u.wx_id` exists, SMS should not be sent.  Instead, we
-            # update `u.wx_push` with `new_courses` so that we can return
-            # it when users performs a score query by Weixin.
+            # If `u.wx_id` exists, we should update `u.wx_push` with `new_courses`
+            # so that we can return it when users performs a score query by Weixin,
+            # no matter `u.mobileno` exists or not.
             if u.wx_id:
                 u.wx_push.update(new_courses)
-                self.kv.set(u.usercode.encode("utf-8"), u)
-                return
 
             self.kv.set(u.usercode.encode("utf-8"), u)
 
-            noteinfo = create_message(u.TPL_NEW_COURSES, u=u, new_courses=new_courses)
-            noteinfo = base64.b64encode(noteinfo)
-            sae.taskqueue.add_task(
-                "send_notification_sms_task",
-                "/backend/sms/%s" % u.usercode,
-                noteinfo
-            )
+            # If `u.mobileno` exists, we should notify the user via SMS.
+            if u.mobileno:
+                noteinfo = utf8(create_message(u.TPL_NEW_COURSES, u=u, new_courses=new_courses))
+                noteinfo = base64.b64encode(noteinfo)
+                sae.taskqueue.add_task(
+                    "send_notification_sms_task",
+                    "/backend/sms/%s" % u.usercode,
+                    noteinfo
+                )
 
 
 class SMSById(TaskHandler):
@@ -341,26 +347,8 @@ class SMSById(TaskHandler):
         pass
 
 
-class TempHandler(TaskHandler):
-    def get(self):
-        pass
-
-
-WX_SIGNUP_FAIL = u'''Sorry，登记失败了！请检查学号、密码是否输入有误。'''
-WX_SIGNUP_SUCC = u'''Hello，%s！全学程您的学分积为%s，%s，共修过%d门课。加油！'''
-WX_GUIDE = u"\r\n".join([u"欢迎通过微信使用Noven！",
-                         u"Noven可以帮助你查询最近出分状况，省去了频繁登录教务系统的烦恼~",
-                         u"",
-                         u"微信公众号是为无法使用飞信的同学而特别准备的。若您是飞信用户，"
-                         u"欢迎到Noven网站登记：noven.sinaapp.com，如有新课程出分将自动短信通知，比微信更方便快捷~",
-                         u"",
-                         u"登记：发送“ZC 学号 教务系统密码”（请用空格隔开，不包括引号）",
-                         u"查询：登记后发送任意内容即可查询最近出分状况",
-                         u"",
-                         u"若您已在网站登记，微信登记后短信通知将随即终止"])
-WX_NO_UPDATE = u'''Hello，%s！最近没有新课程出分。当前学期您的学分积为%s，全学程您的学分积为%s，%s。'''
-WX_NEW_RELEASE = u'''Hello，%s！有%d门课出分了：%s。当前学期您的学分积为%s，全学程您的学分积为%s，%s。'''
-WX_NOT_SIGNED = u'''Sorry，您尚未登记！请发送“ZC 学号 密码”（请用空格隔开，不包括引号）进行登记。'''
+# ----------------------------------------------------------------------
+# Brand new WxHandler
 
 
 class WxHandler(TaskHandler):
@@ -372,93 +360,65 @@ class WxHandler(TaskHandler):
         self.render("weixin.html")
 
     def post(self):
-        msg = NovenWx.parse(self.request.body)
+        msg = self.msg = NovenWx.parse(self.request.body)
 
         print msg.fr
+
+        if isinstance(msg, NovenWx.BlahMessage):
+            self.reply(u"收到！")
+            return
+
+        # Check user's existence so we WON'T need to check it in every logic.
+        # If user doesn't exist, reply the guide.
+        uc = self.kv.get(msg.fr.encode("utf-8"))
+        if not uc:
+            self.reply("guide")
+            return
+
+        u = self.kv.get(uc)
+        if not u:
+            self.reply("guide")
+            return
 
         # Score query logic.
         # Score query supposes to be the most frequent action when noven goes
         # online.  Score query logic goes first in order to save IF computes.
         if isinstance(msg, NovenWx.QueryMessage):
-            uc = self.kv.get(msg.fr.encode("utf-8"))
-            if uc:
-                u = self.kv.get(uc)
-                if u.wx_push:
-                    tosend = u"、".join([u"%s(%s)" % (v.subject, v.score) for v in u.wx_push.values()])
-                    self.reply(msg, WX_NEW_RELEASE % (u.name, len(u.wx_push), tosend, u.current_GPA, u.GPA, u.rank))
-                    u.wx_push = {}
-                    self.kv.set(u.usercode.encode("utf-8"), u)
-                    return
-                else:
-                    self.reply(msg, WX_NO_UPDATE % (u.name, u.current_GPA, u.GPA, u.rank))
-                    return
+            if u.wx_push:
+                # TPL_NEW_COURSES
+                self.reply(create_message(u.TPL_NEW_COURSES, u=u, new_courses=u.wx_push))
+                u.wx_push = {}
+                self.kv.set(u.usercode.encode("utf-8"), u)
+                return
             else:
-                self.reply(msg, WX_NOT_SIGNED)
+                # TPL_NO_UPDATE
+                self.reply(create_message(u.TPL_NO_UPDATE, u=u))
                 return
 
+        # Menu
+        # User is requesting menu.
+        if isinstance(msg, NovenWx.MenuMessage):
+            self.reply("menu")
+            return
+
         # Subscribe event.
-        # Check whether the user exists. If exists, activate the user and
-        # return `SUCC`. Otherwise, it's a new follower, return the guide.
+        # Check whether the user exists.  If exists, activate the user and
+        # welcome back.  Otherwise, it's a new follower, return the guide.
         if isinstance(msg, NovenWx.HelloMessage):
-            uc = self.kv.get(msg.fr.encode("utf-8"))
-            if uc:
-                u = self.kv.get(uc)
-                if u.wx_id:
-                    u.verified = True
-                    self.kv.set(uc, u)
-                    logging.info("%s - Activated: Re-Subsciribe.", uc)
-                    self.reply(msg, u"Hello，%s！欢迎回来！" % u.name)
-                    return
-            self.reply(msg, WX_GUIDE)
+            u.verified = True
+            self.kv.set(uc, u)
+            logging.info("%s - Activated: Re-Subsciribe.", uc)
+            self.reply(u"Hello，%s！欢迎回来！" % u.name)
             return
 
         # Unsubscribe event.
         # Deactivate users when they unsubscribe to save unnecessary update.
         # In case of users' returning back, we don't delete data.
         if isinstance(msg, NovenWx.ByeMessage):
-            uc = self.kv.get(msg.fr.encode("utf-8"))
-            if uc:
-                u = self.kv.get(uc)
-                if u.wx_id:
-                    u.verified = False
-                    self.kv.set(uc, u)
-                    logging.info("%s - Deactivated: Unsubscribe.", uc)
-                    return
-
-        # Sign up logic.
-        if isinstance(msg, NovenWx.SignupMessage):
-            if self.kv.get(msg.fr.encode("utf-8")):
-                self.reply(msg, u"Hello，您已成功登记！回复任意内容查询最近出分状况。")
-                return
-            u = self.kv.get(msg.usercode.encode("utf-8"))
-
-            if u and u.password == msg.password:
-                u.wx_id = msg.fr
-                u.verified = True
-                u.mobileno = None
-                u.mobilepass = None
-            else:
-                u = alpha.User(
-                    ucode = msg.usercode,
-                    upass = msg.password,
-                    wid   = msg.fr
-                )
-                if u.name:
-                    u.verified = True
-                    # `u.init()` takes time to finish, and it is likely
-                    # to exceed 5s time limit for a Weixin reply.  I can't
-                    # find a solution right now, may there will be one later.
-                    u.init()
-
-            if u.verified:
-                # `set()` only takes str as key, WTF!
-                self.kv.set(u.usercode.encode("utf-8"), u)
-                self.kv.set(msg.fr.encode("utf-8"), u.usercode.encode("utf-8"))
-                self.reply(msg, WX_SIGNUP_SUCC % (u.name, u.GPA, u.rank, len(u.courses)))
-                return
-            else:
-                self.reply(msg, WX_SIGNUP_FAIL)
-                return
+            u.verified = False
+            self.kv.set(uc, u)
+            logging.info("%s - Deactivated: Unsubscribe.", uc)
+            return
         else:
             # Handle unknown message here.
             pass
@@ -470,5 +430,11 @@ class WxHandler(TaskHandler):
         # can be implemented here later if it is needed.
         pass
 
-    def reply(self, received, content):
-        self.write(NovenWx.reply(received, content))
+    def reply(self, content):
+        msg = self.msg
+        if content == "guide":
+            self.render("guide.xml", to=msg, t=msg.fr, s=create_signature(msg.fr))
+        elif content == "menu":
+            self.render("menu.xml", to=msg)
+        else:
+            self.render("text.xml", to=msg, content=content)
