@@ -6,7 +6,7 @@ import functools
 
 import requests
 
-
+ALL_TERMS = True
 LOGIN_URL = "http://jwxt.bjfu.edu.cn/jwxt/logon.asp"
 NAME_URL = "http://jwxt.bjfu.edu.cn/jwxt/menu.asp"
 DATA_URL = "http://jwxt.bjfu.edu.cn/jwxt/Student/StudentGraduateInfo.asp"
@@ -132,7 +132,7 @@ class User(object):
         m = re.search(pattern, r.content.decode("gbk"))
         if m:
             self.name = m.groups()[0]
-            logging.debug("%s - [alpha2] Name found: %s", self.usercode, self.name)
+            logging.debug("%s - [alpha] Name found: %s", self.usercode, self.name)
             return self.name
 
     def _get_GPA(self, r, all=False):
@@ -146,11 +146,11 @@ class User(object):
         if m:
             if all:
                 self.GPA = m.group(1)
-                logging.debug("%s - [alpha2] GPA updated: %s", self.usercode, self.GPA)
+                logging.debug("%s - [alpha] GPA updated: %s", self.usercode, self.GPA)
                 return self.GPA
             else:
                 self.current_GPA = m.group(1)
-                logging.debug("%s - [alpha2] Current GPA updated: %s", self.usercode, self.current_GPA)
+                logging.debug("%s - [alpha] Current GPA updated: %s", self.usercode, self.current_GPA)
                 return self.current_GPA
 
     def _get_courses(self, r):
@@ -165,7 +165,7 @@ class User(object):
             # IndexError sometimes occurs when saving rank.  It appears that
             # malformed response we received is to blame, i.e. `r.content` is
             # not completed.
-            logging.error("%s - Something wrong with the returning data.", self.usercode)
+            logging.error("%s - [alpha] Something wrong with the returning data.", self.usercode)
             return {}
 
         # Save the rank calculated by JWXT.
@@ -177,7 +177,7 @@ class User(object):
         except IndexError as e:
             logging.error("%s - Can't get rank for the user.", self.usercode)
 
-        logging.debug("%s - [alpha2] Rank saved: %s", self.usercode, self.rank)
+        logging.debug("%s - [alpha] Rank saved: %s", self.usercode, self.rank)
 
         # Delete unnecessary data.
         del l[0]
@@ -187,7 +187,7 @@ class User(object):
         courses = self.courses.values()
         for i in l:
             if len(i.contents) < 4:
-                logging.debug("%s - [alpha2] Too few `i.contents`.", self.usercode)
+                logging.debug("%s - [alpha] Too few `i.contents`.", self.usercode)
                 continue
             # Normal cases.
             if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
@@ -206,7 +206,7 @@ class User(object):
                 key = course.term + course.subject
                 if course not in courses:
                     new_courses[key] = course
-                    logging.debug("%s - [alpha2] A new course: %s", self.usercode, key)
+                    logging.debug("%s - [alpha] A new course: %s", self.usercode, key)
             # Special cases.
             # If the course is released before Rating System being closed,
             # score will not be displayed.
@@ -221,7 +221,7 @@ class User(object):
                 key = course.term + course.subject
                 if not self.courses.has_key(key):
                     new_courses[key] = course
-                    logging.debug("%s - [alpha2] A new course: %s", self.usercode, key)
+                    logging.debug("%s - [alpha] A new course: %s", self.usercode, key)
             else:
                 # If no course was created, we should simply continue in case
                 # of encountering NameError later.
@@ -257,7 +257,7 @@ class User(object):
             raise Exception("User not registered.")
 
         self._get_courses(r)
-        self._get_GPA(r, True)
+        self._get_GPA(r, ALL_TERMS)
 
         # Get `current_GPA`
         r = self._fetch_now()
@@ -274,7 +274,7 @@ class User(object):
         self._login()
 
         # Get `new_courses`
-        r = self._fetch_now()
+        r = self._fetch_all()
 
         # If user not regisered yet, then we can't fetch any data.
         # Remember to ogout before raise.
@@ -283,12 +283,11 @@ class User(object):
             raise Exception("User not registered.")
 
         new_courses = self._get_courses(r)
+        self._get_GPA(r, ALL_TERMS)
 
         # Only if we got new courses should we update GPAs.
         if new_courses:
-            a = self._fetch_all()
-            self._get_GPA(a, True)
-
+            r = self._fetch_now()
             self._get_GPA(r)
 
             logging.info("%s - Updated: [Name] %s [Courses] %d [GPA] %s [c_GPA] %s",
