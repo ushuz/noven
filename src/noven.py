@@ -123,7 +123,7 @@ class SignupHandler(BaseHandler):
                 return
 
         # Check mobile.
-        if mcode and len(mcode) != 11 and mcode.isdigit():
+        if mcode and len(mcode) != 11 and mcode.isdigit() and not mpass:
             self.redirect("/sorry")
             return
 
@@ -149,7 +149,7 @@ class SignupHandler(BaseHandler):
         self.set_secure_cookie("uc", ucode)
 
         TPL_VCODE = u'''Hello，%s！您的登记验证码：%s [Noven]'''
-        if new_user.mobileno:
+        if new_user.mobileno and new_user.mobilepass:
             # If user's usercode and password are OK, then we should send
             # verification SMS.  SMS should be sent synchronously in order to
             # redirect the user to error page when NovenFetion.AuthError occurs.
@@ -285,6 +285,8 @@ class UpdateById(TaskHandler):
             self.kv.set(u.usercode.encode("utf-8"), u)
             logging.info("%s - Deactivated: User changed password.", id)
             logging.error("%s - Update Failed: %s", id, e)
+        except Exception as e:
+            logging.error("%s - Update Failed: %s", id, e)
             return
 
         if new_courses:
@@ -330,7 +332,7 @@ class SMSById(TaskHandler):
                 fetion.send_sms(c)
                 fetion.logout()
             except NovenFetion.AuthError as e:
-                logging.error("%s - SMS Failed: Wrong password for %s.", id, n)
+                logging.error("%s - SMS Failed: %s", id, e)
                 # `NovenFetion.AuthError` means users had changed Fetion password
                 # for sure. Deactivate them.
                 u.verified = False
