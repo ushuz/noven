@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 
-import json
 import requests
 
 HOST = "http://f.10086.cn"
@@ -37,10 +36,10 @@ class Fetion(object):
         }
         try:
             r = self.session.post(HOST+"/im5/login/loginHtml5.action", data=login_payload)
+            self.id = r.json()["idUser"]
         except:
             raise ConnError("%s - ConnError: Login" % self.mobile)
 
-        self.id = json.loads(r.text)["idUser"]
         if not self.id:
             raise AuthError("%s - AuthError: Wrong Mobile or Password" % self.mobile)
 
@@ -65,7 +64,7 @@ class Fetion(object):
         except:
             raise ConnError("%s - ConnError: Send SMS" % self.mobile)
 
-        return json.loads(r.text)["sendCode"]
+        return r.json()["sendCode"]
 
     def logout(self):
         '''/im5/index/logoutsubmit.action'''
@@ -74,3 +73,7 @@ class Fetion(object):
         except:
             raise ConnError("%s - ConnError: Logout" % self.mobile)
         self.id = None
+
+
+if __name__ == "__main__":
+    pass
