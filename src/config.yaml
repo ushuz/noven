@@ -12,6 +12,9 @@ cron:
 - description: Update schedule for 2nd term.
   url: backend/update
   schedule: "2 0,8,10,12-22/3 * 6-7 *"
+- description: Update schedule for the rest.
+  url: backend/update
+  schedule: "2 0,8,10,12-22/3 * 3,8,9,12 *"
 
 handlers:
 - url: /static/
