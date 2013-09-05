@@ -181,7 +181,6 @@ class SignupHandler(BaseHandler):
         elif new_user.wx_id:
             new_user.verified = True
             self.kv.set(utf8(new_user.usercode), new_user)
-            self.kv.set(utf8(new_user.wx_id), utf8(new_user.usercode))
             self.redirect("/welcome")
         else:
             self.redirect("/sorry")
@@ -220,6 +219,9 @@ class WelcomeHandler(BaseHandler):
             except Exception as e:
                 logging.error("%s - Init Failed: %s", u.usercode, e)
             self.kv.set(u.usercode.encode("utf-8"), u)
+
+            if u.wx_id:
+                self.kv.set(utf8(u.wx_id), utf8(u.usercode))
 
             if u.mobileno:
                 wellinfo = utf8(create_message(u.TPL_WELCOME, u=u))
