@@ -287,6 +287,7 @@ class UpdateById(TaskHandler):
             self.kv.set(u.usercode.encode("utf-8"), u)
             logging.info("%s - Deactivated: User changed password.", id)
             logging.error("%s - Update Failed: %s", id, e)
+            return
         except Exception as e:
             logging.error("%s - Update Failed: %s", id, e)
             return
