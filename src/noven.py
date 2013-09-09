@@ -299,8 +299,6 @@ class UpdateById(TaskHandler):
             if u.wx_id:
                 u.wx_push.update(new_courses)
 
-            self.kv.set(u.usercode.encode("utf-8"), u)
-
             # If `u.mobileno` exists, we should notify the user via SMS.
             if u.mobileno:
                 noteinfo = utf8(create_message(u.TPL_NEW_COURSES, u=u, new_courses=new_courses))
@@ -310,6 +308,10 @@ class UpdateById(TaskHandler):
                     "/backend/sms/%s" % u.usercode,
                     noteinfo
                 )
+
+        # Save to KVDB after every update.
+        # Rank maybe updated without new releases,
+        self.kv.set(u.usercode.encode("utf-8"), u)
 
 
 class SMSById(TaskHandler):
@@ -366,7 +368,7 @@ class WxHandler(TaskHandler):
     def post(self):
         msg = self.msg = NovenWx.parse(self.request.body)
 
-        print msg.fr
+        print msg.fr+" "+str(type(msg))
 
         if isinstance(msg, NovenWx.BlahMessage):
             self.reply(u"收到！")
