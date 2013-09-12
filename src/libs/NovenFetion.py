@@ -36,12 +36,20 @@ class Fetion(object):
         }
         try:
             r = self.session.post(HOST+"/im5/login/loginHtml5.action", data=login_payload)
-            self.id = r.json()["idUser"]
+            tip = r.json()["tip"]
         except:
             raise ConnError("%s - ConnError: Login" % self.mobile)
 
-        if not self.id:
-            raise AuthError("%s - AuthError: Wrong Mobile or Password" % self.mobile)
+        if tip == u"登录出错,请稍候重试":
+            raise ConnError("%s - ConnError: Login" % self.mobile)
+
+        if tip == u"密码错误,请重新尝试":
+            raise AuthError("%s - AuthError: Wrong Password" % self.mobile)
+
+        if tip == u"未注册飞信服务":
+            raise AuthError("%s - AuthError: Wrong Mobile" % self.mobile)
+
+        self.id = r.json()["idUser"]
 
     def send_sms(self, msg):
         '''/im5/chat/sendNewGroupShortMsg.action
