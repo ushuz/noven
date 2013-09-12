@@ -255,11 +255,31 @@ class TaskHandler(tornado.web.RequestHandler):
 
 class UpdateAll(TaskHandler):
     def get(self):
+        # We make breakpoint a marker to continue update.
+        # Depending on the type of the marker, only the matching group will be
+        # pushed into queue.  That's to say, if marker is a ZJU id, `ucs` would
+        # be empty.  On the contrary, `ids` would be empty.
         marker = self.get_argument("marker", None)
-        # The users base is very large right now, so we have to change the prefix.
+
+        # ZJU update.
+        ids = self.kv.getkeys_by_prefix("3", limit=1000, marker=marker)
+        try:
+            for id in ids:
+                sae.taskqueue.add_task("update_queue", "/backend/update/%s" % id)
+        except sae.taskqueue.Error as e:
+            logging.error("%s - Update Failed: To be continued.")
+            sae.taskqueue.add_task("update_queue", "/backend/update?marker=%s" % id)
+
+        # BJFU update.
         ucs = self.kv.getkeys_by_prefix("1", limit=1000, marker=marker)
-        for uc in ucs:
-            sae.taskqueue.add_task("update_queue", "/backend/update/%s" % uc)
+        try:
+            for uc in ucs:
+                sae.taskqueue.add_task("update_queue", "/backend/update/%s" % uc)
+        except sae.taskqueue.Error as e:
+            # KVDB is annoying.  We may encounter different errors, such as `Timed
+            # Out`, `No Server Available`, etc.  We should just continue from here.
+            logging.error("%s - Update Failed: To be continued.")
+            sae.taskqueue.add_task("update_queue", "/backend/update?marker=%s" % uc)
 
 
 class UpdateById(TaskHandler):
