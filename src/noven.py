@@ -256,15 +256,18 @@ class TaskHandler(tornado.web.RequestHandler):
 
 class UpdateAll(TaskHandler):
     def get(self):
-        # We make breakpoint a marker to continue update.
+        # We make breakpoint a marker to continue the update process.
         # Depending on the type of the marker, only the matching group will be
         # pushed into queue.  That's to say, if marker is a ZJU id, `ucs` would
-        # be empty.  On the contrary, `ids` would be empty.
+        # be empty, only ZJU users would be pushed into queue.
         marker = self.get_argument("marker", None)
 
         # ZJU update.
         ids = self.kv.getkeys_by_prefix("3", limit=1000, marker=marker)
         try:
+            # If the for-loop breaks at its first element, id will not be created
+            # and cause NameError when handling exception.
+            id = ""
             for id in ids:
                 sae.taskqueue.add_task("update_queue", "/backend/update/%s" % id)
         except sae.taskqueue.Error as e:
@@ -274,6 +277,7 @@ class UpdateAll(TaskHandler):
         # BJFU update.
         ucs = self.kv.getkeys_by_prefix("1", limit=1000, marker=marker)
         try:
+            uc = ""
             for uc in ucs:
                 sae.taskqueue.add_task("update_queue", "/backend/update/%s" % uc)
         except sae.taskqueue.Error as e:
