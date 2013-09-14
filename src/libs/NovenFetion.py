@@ -40,14 +40,14 @@ class Fetion(object):
         except:
             raise ConnError("%s - ConnError: Login" % self.mobile)
 
-        if tip == u"登录出错,请稍候重试":
-            raise ConnError("%s - ConnError: Login" % self.mobile)
-
         if tip == u"密码错误,请重新尝试":
             raise AuthError("%s - AuthError: Wrong Password" % self.mobile)
 
         if tip == u"未注册飞信服务":
             raise AuthError("%s - AuthError: Wrong Mobile" % self.mobile)
+
+        if tip:
+            raise ConnError("%s - ConnError: %s" % (self.mobile, tip))
 
         self.id = r.json()["idUser"]
 
