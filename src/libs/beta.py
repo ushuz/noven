@@ -218,6 +218,8 @@ class User(object):
             logging.info("%s - Updated: [Name] %s [Courses] %d [GPA] %s",
                 self.usercode, self.name, len(new_courses), self.GPA)
 
+        self._logout()
+
         return new_courses
 
 
