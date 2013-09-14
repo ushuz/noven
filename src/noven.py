@@ -96,7 +96,8 @@ class SignupHandler(BaseHandler):
     def get(self):
         t = self.get_argument("t", None)
         s = self.get_argument("s", None)
-        self.render("signup.html", total=self.kv.get_info()["total_count"], t=t, s=s)
+        total = self.kv.get_info()["total_count"]
+        self.render("signup.html", total=total, t=t, s=s)
 
     def post(self):
         t = self.get_argument("t", None)
@@ -162,8 +163,6 @@ class SignupHandler(BaseHandler):
             while True:
                 try:
                     fetion.login()
-                    fetion.send_sms(c)
-                    fetion.logout()
                 except NovenFetion.AuthError as e:
                     logging.info("%s - Sign-up Failed: %s", ucode, e)
                     self.redirect("/sorry")
@@ -171,6 +170,9 @@ class SignupHandler(BaseHandler):
                 except Exception:
                     continue
                 break
+            fetion.send_sms(c)
+            fetion.logout()
+
             # If SMS is sent, log and move on.
             logging.info("%s - SMS Sent: To %s.", ucode, n)
 
@@ -201,8 +203,7 @@ class VerifyHandler(BaseHandler):
             self.kv.set(utf8(u.usercode), u)
             self.redirect("/welcome")
         else:
-            logging.info("%s - Sign-up Failed: Wrong verification code.",
-                u.usercode)
+            logging.info("%s - Sign-up Failed: Wrong verification code.", u.usercode)
             self.redirect("/sorry")
 
 
@@ -354,12 +355,10 @@ class SMSById(TaskHandler):
         while True:
             try:
                 fetion.login()
-                fetion.send_sms(c)
-                fetion.logout()
             except NovenFetion.AuthError as e:
                 logging.error("%s - SMS Failed: %s", id, e)
                 # `NovenFetion.AuthError` means users had changed Fetion password
-                # for sure. Deactivate them.
+                # for sure.  Deactivate them.
                 u.verified = False
                 self.kv.set(id.encode("utf-8"), u)
                 logging.info("%s - Deactivated: User changed Fetion password.", id)
@@ -367,6 +366,9 @@ class SMSById(TaskHandler):
             except Exception:
                 continue
             break
+        fetion.send_sms(c)
+        fetion.logout()
+
         logging.info("%s - SMS Sent to %s.", id, n)
 
     def check_xsrf_cookie(self):
