@@ -1,0 +1,13 @@
+{% extends base.html %}
+
+{% block title %}成绩单 - Noven{% end %}
+
+{% block head %}<link rel="stylesheet" href="{{ static_url('css/report.css') }}">{% end %}
+
+{% block body %}
+  {% if u.__module__ == "libs.beta" %}
+    {% module Template("beta/report.html", u=u) %}
+  {% elif u.__module__ == "libs.alpha" %}
+    {% module Template("alpha/report.html", u=u) %}
+  {% end %}
+{% end %}
