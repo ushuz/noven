@@ -1,42 +1,34 @@
 .reg-box {
-    color: white;
-    padding-top: 60px;
-    height: 420px;
-    max-width: 480px;
-    margin: auto;
-}
-
-.reg-box form {
-    float: left;
+    padding: 60px 10px;
 }
 
 .reg-item {
-    margin: 18px auto;
+    margin: 25px auto;
 }
 
 .reg-box label {
     text-align: right;
     width: 60px;
-    line-height: 30px;
+    /*line-height: 30px;*/
     vertical-align: middle;
     display: inline-block;
     margin-right: 20px;
 }
 
-.input{
-    width: 180px;
+.input {
+    width: 200px;
     height: 18px;
     padding: 5px;
     border-radius: 2px;
-    border: 1px solid #CCC;
+    border: 1px solid #ccc;
 }
 
-.btn{
-    width:192px;
-    background:grey;
-    border:none;
-    color:white;
-    height:30px;
+.btn {
+    width: 212px;
+    background: #808080;
+    border: none;
+    color: white;
+    height: 30px;
 }
 
 .btnValid {
@@ -51,7 +43,6 @@
 }
 
 .tips {
-    float: right;
     text-align: left;
     padding-top: 20px;
     font-size: 12px;
@@ -59,17 +50,17 @@
 }
 
 @media (max-width: 767px) {
-    .reg-box, .reg-box  form, .reg-box  label , .tips  {
-        width: 100%;
+    .reg-box {
         text-align: center;
         padding-top: 0;
     }
 
-    .reg-item  {
-        margin: 8px auto;
+    .reg-box form {
+        padding: 20px 0;
     }
 
-    .reg-box  label  {
-        margin-right: 0;
+    .tips {
+        text-align: center;
+        padding-top: 0;
     }
 }

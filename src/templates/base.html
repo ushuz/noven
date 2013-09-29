@@ -1,27 +1,21 @@
 <!DOCTYPE HTML>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{% block title %}主页 - Noven{% end %}</title>
-    <link rel="stylesheet" type="text/css" href="{{ static_url('css/base.css')}}" />
-    <link rel="stylesheet" type="text/css" href="{{ static_url('css/normalize.css')}}" />
-    {% block head %}{% end %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>{% block title %}主页 - Noven{% end %}</title>
+  <link rel="stylesheet" type="text/css" href="{{ static_url('css/normalize.css')}}" />
+  <link rel="stylesheet" type="text/css" href="{{ static_url('css/base.css')}}" />
+  {% block head %}{% end %}
 </head>
 <body>
-    <div id="header">
-        <div id="logo-container">
-            <a id="logo" href="/" ></a>
-        </div>
+  <div id="header">
+    <div id="logo-container">
+      <a id="logo" href="/" ></a>
     </div>
+  </div>
+  <div id="main">
     {% block body %}{% end %}
-    <div id="footer">
-        <ul>
-            <li><a href="/about">关于</a></li>
-            <li><a href="/help">帮助</a></li>
-            <li><span id="copyright">© Noven</span></li>
-        </ul>
-
-    </div>
+  </div>
 </body>
 </html>

@@ -1,7 +1,9 @@
+/* Global Settings */
+
 body {
-    margin: 0 0 0 auto;
-    background-color:#262626;
-    font: 14px arial,sans-serif;
+    font-family: "Helvetica Neue", "Luxi Sans", "DejaVu Sans", Arial, STHeiti, SimHei, sans-serif;
+    font-size: 14px;
+    background-color: #262626;
 }
 
 a {
@@ -17,76 +19,82 @@ a:hover {
 /* Header & Logo */
 
 #header {
-    background-color:#38bfec;
-    width:100%;
-    height:100px;
+    background-color: #38bfec;
+    width: 100%;
+    height: 100px;
 }
 
 #logo-container {
     max-width: 540px;
     padding-top: 12.5px;
     margin: auto;
-    height: 87.5px;
 }
 
 #logo {
     background: url("../img/logo_middle.png") no-repeat;
     height: 75px;
-    display: block;
+    width: 200px;
+    display: inline-block;
 }
 
-/* Footer */
+/* Main */
 
-#footer {
-    margin: auto;
+#main {
     color: white;
     max-width: 540px;
-    border-top: 1px solid #606060;
-    height: 35px;
-    margin-top: 10px;
-
-    /* Hide Footer */
-    display: none;
+    margin: auto;
 }
 
-#footer ul {
-    list-style: none;
-    width: 200px;
-    float: right;
-    text-align: right;
-    margin-top: 8px;
-}
-
-#footer ul li {
-    display: inline;
-    margin: auto 10px auto 10px;
-}
-
-#footer a {
-    color: white;
-    display: none;
-}
-
-#copyright {
-
+.box {
+    margin: auto;
 }
 
 /* msg-box Style */
 
 .msg-box {
     text-align: left;
-    color: white;
-    padding-top: 60px;
-    height: 420px;
-    max-width: 480px;
-    margin: auto;
+    padding: 60px 20px;
 }
 
-/* Responsive msg-box */
+/* Useful Helpers */
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+.clear {
+    clear: both;
+    width: 100%;
+}
+
+.sep5 {
+    /*height: 5px;*/
+}
+
+/* Responsive Stuff */
 
 @media (max-width: 767px) {
-    .msg-box {
-        width: 80%;
-        height: 100%;
+    #header {
+        height: 60px;
+    }
+
+    #logo-container {
+        padding-top: 11px;
+    }
+
+    #logo {
+        background: url("../img/logo_small.png") no-repeat;
+        height: 38px;
+        width: 100px;
+        margin-left: 10px
+    }
+
+    .left,
+    .right {
+        float: none;
     }
 }
