@@ -15,7 +15,7 @@ import tornado.template
 from tornado.escape import utf8, _unicode
 
 # Import the main libs for the app.
-from libs import alpha2 as alpha
+from libs import alpha
 from libs import beta
 from libs import NovenFetion
 from libs import NovenWx
@@ -243,6 +243,23 @@ class SorryHandler(BaseHandler):
         error = "请检查学号、教务系统密码、手机号码、飞信密码输入是否有误。<br/>" \
                 "若您已不记得飞信密码，请编辑新密码发送到12520050重置您的飞信密码。"
         self.render("sorry.html", error = error)
+
+
+class ReportHandler(BaseHandler):
+    """Display users' reports."""
+    def get(self):
+        t = self.get_argument("t", None)
+        s = self.get_argument("s", None)
+        n = self.get_argument("n", None)
+        
+        # if create_signature(t) != s:
+        #     self.redirect("/sorry")
+        #     return
+
+        uc = self.kv.get(utf8(t))
+        u = self.kv.get(uc)
+
+        self.render("report.html", u=u, school="北京林业大学")
 
 
 # ----------------------------------------------------------------------
