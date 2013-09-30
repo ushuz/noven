@@ -1,10 +1,11 @@
 # -*- coding:utf-8 -*-
 
-import os
 import base64
 import functools
 import hashlib
 import logging
+import os
+import time
 
 import sae
 import sae.kvdb
@@ -52,6 +53,7 @@ def create_message(tpl, **kw):
 # ----------------------------------------------------------------------
 # Base handlers
 
+
 class BaseHandler(tornado.web.RequestHandler):
     def initialize(self, *args, **kwargs):
         self.kv = sae.kvdb.KVClient()
@@ -88,6 +90,11 @@ class ErrorHandler(BaseHandler):
 tornado.web.ErrorHandler = ErrorHandler
 
 
+class TaskHandler(tornado.web.RequestHandler):
+    def initialize(self, *args, **kwargs):
+        self.kv = sae.kvdb.KVClient()
+
+
 # ----------------------------------------------------------------------
 # Main handlers
 
@@ -108,9 +115,7 @@ class SignupHandler(BaseHandler):
         mpass = self.get_argument("mp", None)
 
         # Check ucode at the very first.
-        if ucode and ucode.isdigit():
-            pass
-        else:
+        if not ucode or not ucode.isdigit():
             self.redirect("/sorry")
             return
 
@@ -251,24 +256,128 @@ class ReportHandler(BaseHandler):
         t = self.get_argument("t", None)
         s = self.get_argument("s", None)
         n = self.get_argument("n", None)
-        
-        # if create_signature(t) != s:
-        #     self.redirect("/sorry")
-        #     return
+
+        # Authenticate the user.
+        # Turn down illegal accesses by 404.
+        if not t or not s or not n or create_signature(t[:20]+n[-8:]) != s:
+            raise tornado.web.HTTPError(404)
+
+        # Timedout
+        # Tell users their sessions expired by 401.
+        if time.time() - float(n) > 3600:
+            raise tornado.web.HTTPError(401)
 
         uc = self.kv.get(utf8(t))
-        u = self.kv.get(uc)
+        # Check if usercode was successfully retrieved.
+        if not uc:
+            raise tornado.web.HTTPError(404)
 
-        self.render("report.html", u=u, school="北京林业大学")
+        u = self.kv.get(uc)
+        # Check if User object was successfully retrieved.
+        if not u:
+            raise tornado.web.HTTPError(404)
+
+        self.render("report.html", u=u)
+
+
+# ----------------------------------------------------------------------
+# Brand new WxHandler
+
+
+class WxHandler(TaskHandler):
+    def get(self):
+        s = self.get_argument("echostr", None)
+        if s:
+            self.write(s.encode("utf-8"))
+            return
+        self.render("weixin.html")
+
+    def post(self):
+        msg = self.msg = NovenWx.parse(self.request.body)
+
+        print msg.fr+" "+str(type(msg))
+
+        if isinstance(msg, NovenWx.BlahMessage):
+            if msg.content[1:] == u"成绩单":
+                self.render("menu-with-report.xml", to=msg, create_signature=create_signature)
+                return
+            self.reply(u"收到！")
+            return
+
+        # Check user's existence so we WON'T need to check it in every logic.
+        # If user doesn't exist, reply the guide.
+        uc = self.kv.get(msg.fr.encode("utf-8"))
+        if not uc:
+            self.reply("guide")
+            return
+
+        u = self.kv.get(uc)
+        if not u:
+            self.reply("guide")
+            return
+
+        # Score query logic.
+        # Score query supposes to be the most frequent action when noven goes
+        # online.  Score query logic goes first in order to save IF computes.
+        if isinstance(msg, NovenWx.QueryMessage):
+            if u.wx_push:
+                # TPL_NEW_COURSES
+                self.reply(create_message(u.TPL_NEW_COURSES, u=u, new_courses=u.wx_push))
+                u.wx_push = {}
+                self.kv.set(u.usercode.encode("utf-8"), u)
+                return
+            else:
+                # TPL_NO_UPDATE
+                self.reply(create_message(u.TPL_NO_UPDATE, u=u))
+                return
+
+        # Menu
+        # User is requesting menu.
+        if isinstance(msg, NovenWx.MenuMessage):
+            self.reply("menu")
+            return
+
+        # Subscribe event.
+        # Check whether the user exists.  If exists, activate the user and
+        # welcome back.  Otherwise, it's a new follower, return the guide.
+        if isinstance(msg, NovenWx.HelloMessage):
+            u.verified = True
+            self.kv.set(uc, u)
+            logging.info("%s - Activated: Re-Subsciribe.", uc)
+            self.reply(u"Hello，%s！欢迎回来！" % u.name)
+            return
+
+        # Unsubscribe event.
+        # Deactivate users when they unsubscribe to save unnecessary update.
+        # In case of users' returning back, we don't delete data.
+        if isinstance(msg, NovenWx.ByeMessage):
+            u.verified = False
+            self.kv.set(uc, u)
+            logging.info("%s - Deactivated: Unsubscribe.", uc)
+            return
+        else:
+            # Handle unknown message here.
+            pass
+
+    def check_xsrf_cookie(self):
+        # POSTs are made by Tencent servers, so XSRF COOKIE doesn't exist.
+        # Checking XSRF COOKIE becomes unnecessary under such condition.
+        # While Weixin has offered a way to authenticate the POSTs, which
+        # can be implemented here later if it is needed.
+        pass
+
+    def reply(self, content):
+        msg = self.msg
+        if content == "guide":
+            self.render("guide.xml", to=msg, create_signature=create_signature)
+        elif content == "menu":
+            self.render("menu.xml", to=msg, create_signature=create_signature)
+        else:
+            self.render("text.xml", to=msg, content=content)
 
 
 # ----------------------------------------------------------------------
 # Brand new TaskHandlers
-
-
-class TaskHandler(tornado.web.RequestHandler):
-    def initialize(self, *args, **kwargs):
-        self.kv = sae.kvdb.KVClient()
 
 
 class UpdateAll(TaskHandler):
@@ -394,96 +503,3 @@ class SMSById(TaskHandler):
 
     def check_xsrf_cookie(self):
         pass
-
-
-# ----------------------------------------------------------------------
-# Brand new WxHandler
-
-
-class WxHandler(TaskHandler):
-    def get(self):
-        s = self.get_argument("echostr", None)
-        if s:
-            self.write(s.encode("utf-8"))
-            return
-        self.render("weixin.html")
-
-    def post(self):
-        msg = self.msg = NovenWx.parse(self.request.body)
-
-        print msg.fr+" "+str(type(msg))
-
-        if isinstance(msg, NovenWx.BlahMessage):
-            self.reply(u"收到！")
-            return
-
-        # Check user's existence so we WON'T need to check it in every logic.
-        # If user doesn't exist, reply the guide.
-        uc = self.kv.get(msg.fr.encode("utf-8"))
-        if not uc:
-            self.reply("guide")
-            return
-
-        u = self.kv.get(uc)
-        if not u:
-            self.reply("guide")
-            return
-
-        # Score query logic.
-        # Score query supposes to be the most frequent action when noven goes
-        # online.  Score query logic goes first in order to save IF computes.
-        if isinstance(msg, NovenWx.QueryMessage):
-            if u.wx_push:
-                # TPL_NEW_COURSES
-                self.reply(create_message(u.TPL_NEW_COURSES, u=u, new_courses=u.wx_push))
-                u.wx_push = {}
-                self.kv.set(u.usercode.encode("utf-8"), u)
-                return
-            else:
-                # TPL_NO_UPDATE
-                self.reply(create_message(u.TPL_NO_UPDATE, u=u))
-                return
-
-        # Menu
-        # User is requesting menu.
-        if isinstance(msg, NovenWx.MenuMessage):
-            self.reply("menu")
-            return
-
-        # Subscribe event.
-        # Check whether the user exists.  If exists, activate the user and
-        # welcome back.  Otherwise, it's a new follower, return the guide.
-        if isinstance(msg, NovenWx.HelloMessage):
-            u.verified = True
-            self.kv.set(uc, u)
-            logging.info("%s - Activated: Re-Subsciribe.", uc)
-            self.reply(u"Hello，%s！欢迎回来！" % u.name)
-            return
-
-        # Unsubscribe event.
-        # Deactivate users when they unsubscribe to save unnecessary update.
-        # In case of users' returning back, we don't delete data.
-        if isinstance(msg, NovenWx.ByeMessage):
-            u.verified = False
-            self.kv.set(uc, u)
-            logging.info("%s - Deactivated: Unsubscribe.", uc)
-            return
-        else:
-            # Handle unknown message here.
-            pass
-
-    def check_xsrf_cookie(self):
-        # POSTs are made by Tencent servers, so XSRF COOKIE doesn't exist.
-        # Checking XSRF COOKIE becomes unnecessary under such condition.
-        # While Weixin has offered a way to authenticate the POSTs, which
-        # can be implemented here later if it is needed.
-        pass
-
-    def reply(self, content):
-        msg = self.msg
-        if content == "guide":
-            self.render("guide.xml", to=msg, t=msg.fr, s=create_signature(msg.fr))
-        elif content == "menu":
-            self.render("menu.xml", to=msg)
-        else:
-            self.render("text.xml", to=msg, content=content)

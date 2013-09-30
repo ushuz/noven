@@ -188,4 +188,6 @@ static
 
 # Tests
 test*
+admin.py
 api.py
+activated.png
