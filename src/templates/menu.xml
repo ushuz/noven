@@ -1,8 +1,7 @@
-{% import time %}
 <xml>
   <ToUserName><![CDATA[{{ to.fr }}]]></ToUserName>
   <FromUserName><![CDATA[{{ to.to }}]]></FromUserName>
-  <CreateTime>{{ int(time.time()) }}</CreateTime>
+  <CreateTime>{{ to.time }}</CreateTime>
   <MsgType><![CDATA[news]]></MsgType>
   <ArticleCount>2</ArticleCount>
   <Articles>

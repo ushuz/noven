@@ -1,8 +1,7 @@
-{% import time %}
 <xml>
   <ToUserName><![CDATA[{{ to.fr }}]]></ToUserName>
   <FromUserName><![CDATA[{{ to.to }}]]></FromUserName>
-  <CreateTime>{{ int(time.time()) }}</CreateTime>
+  <CreateTime>{{ to.time }}</CreateTime>
   <MsgType><![CDATA[news]]></MsgType>
   <ArticleCount>2</ArticleCount>
   <Articles>
@@ -16,7 +15,7 @@
       <Title><![CDATA[登记]]></Title>
       <Description><![CDATA[登记]]></Description>
       <PicUrl><![CDATA[http://mmsns.qpic.cn/mmsns/QhYwSe3HJUSOOGDRsia7Y5EvUJ7WmanZUTOmkUjhzRiaHu1Bd9lx0LlA/0]]></PicUrl>
-      <Url><![CDATA[http://noven.sinaapp.com/?t={{ t }}&s={{ s }}]]></Url>
+      <Url><![CDATA[http://noven.sinaapp.com/?t={{ to.fr }}&s={{ create_signature(to.fr) }}]]></Url>
     </item>
   </Articles>
 </xml>

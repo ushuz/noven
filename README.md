@@ -4,11 +4,11 @@
 
 
 ##TODO
-* [ ] RESTful
+* [?] RESTful
 * [ ] Better Log
 * [ ] Better Admin
 
-* [ ] 个人页面
+* [!] 个人页面
 * [ ] 摸索下怎么搞测试
 
 * [x] 优化data retrieve
