@@ -1,10 +1,4 @@
-{% extends base.html %}
-
-{% block title %}成绩单 - Noven{% end %}
-
-{% block head %}<link rel="stylesheet" href="{{ static_url('css/report.css') }}">{% end %}
-
-{% block body %}<div class="box">
+<div class="box">
   <div class="card-box" id="about">
     <div class="card">
       <div class="body">
@@ -26,21 +20,23 @@
         <span>{{ t[:4] }}-{{ t[4:8] }}学年</span><br />
         <span>第{{ t[-1] }}学期</span>
       </div>
+      <div class="card-scroll"><div class="card-wrap">
     {% for i, c in enumerate([c for c in u.courses.values() if t in c.term]) %}
-      <div class="card">
-        <table><tbody><tr>
-          <td class="no"><span>{{ i+1 }}</span></td>
-          <td class="body">
-            <span class="subject">{{ c.subject }}</span><br />
-            <span class="accessories">
-              <span class="title">学分</span> {{ c.point }}
-              <span class="title">绩点</span> {{ c.grade }}
-            </span>
-          </td>
-          <td class="score" ><span>{{ c.score }}</span></td>
-        </tr></tbody></table>
-      </div>
+        <div class="card">
+          <table><tbody><tr>
+            <td class="no"><span>{{ i+1 }}</span></td>
+            <td class="body">
+              <span class="subject">{{ c.subject }}</span><br />
+              <span class="accessories">
+                <span class="title">学分</span> {{ c.point }}
+                <span class="title">绩点</span> {{ c.grade }}
+              </span>
+            </td>
+            <td class="score" ><span>{{ c.score }}</span></td>
+          </tr></tbody></table>
+        </div>
     {% end %}
+      </div></div>
       <div class="footer">
         <span>{{ t[:4] }} · {{t[-1]}}</span>
       </div>
@@ -49,4 +45,4 @@
   {% end %}
   </div></div>
 </div>
-<script src="{{ static_url('js/swipe.js') }}"></script>{% end %}
+<script src="{{ static_url('js/swipe.js') }}"></script>

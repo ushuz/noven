@@ -56,6 +56,9 @@ function Swipe(container, options) {
     // determine width of each slide
     width = container.getBoundingClientRect().width || container.offsetWidth;
 
+    // determine height of card-scroll BY ushuz
+    var height = window.innerHeight<400 ? window.innerHeight-36 : window.innerHeight-96;
+
     element.style.width = (slides.length * width) + 'px';
 
     // stack elements
@@ -72,9 +75,15 @@ function Swipe(container, options) {
         move(pos, index > pos ? -width : (index < pos ? width : 0), 0);
       }
 
+      // set fixed height for every card-scroll BY ushuz
+      var cardScroll = slide.children[0].children[1];
+      cardScroll.style.height = height + 'px';
+      // cardScroll.addEventListener("touchmove", preventScroll);
+      // cardScroll.ontouchmove = preventScroll;
+
     }
 
-    // ***after stacking element slide height changes*** BY ushuz
+    // after stacking element slide height changes BY ushuz
     // set default wrapper height to first slide BY ushuz
     element.style.height = ((slides[index].offsetHeight || slides[index].getBoundingClientRect().height)) + 'px';
 
@@ -278,9 +287,6 @@ function Swipe(container, options) {
       // used for testing first move event
       isScrolling = undefined;
 
-      // detect scrolling BY ushuz
-      userScrolling = undefined;
-
       // reset delta and end measurements
       delta = {};
 
@@ -307,7 +313,6 @@ function Swipe(container, options) {
       // determine if scrolling test has run - one time test
       if ( typeof isScrolling == 'undefined') {
         isScrolling = !!( isScrolling || Math.abs(delta.x) < Math.abs(delta.y) );
-        userScrolling = isScrolling;
       }
 
       // if user is not trying to scroll vertically
@@ -560,89 +565,82 @@ function Swipe(container, options) {
 
 }
 
-
-if ( window.jQuery || window.Zepto ) {
-  (function($) {
-    $.fn.Swipe = function(params) {
-      return this.each(function() {
-        $(this).data('Swipe', new Swipe($(this)[0], params));
-      });
-    }
-  })( window.jQuery || window.Zepto )
-}
-
 // smooth scrollTo
-function scrollTo(element, to, duration, callback) {
-  var start = document.body.scrollTop,
-    change = to - start,
-    currentTime = 0,
-    increment = 10;
+// function scrollTo(element, to, duration, callback) {
+//   var start = document.body.scrollTop,
+//     change = to - start,
+//     currentTime = 0,
+//     increment = 10;
 
-  // console.log("Scrolling...Start:"+start+" To:"+to+" Change:"+change);
+//   // console.log("Scrolling...Start:"+start+" To:"+to+" Change:"+change);
 
-  if (change >= 0) {
-    callback();
-  }
+//   if (change >= 0) {
+//     callback();
+//   }
 
-  var animateScroll = function(){
+//   var animateScroll = function(){
 
-    if (document.body.scrollTop <= to) {
-      callback();
-      return;
-    };
+//     if (document.body.scrollTop <= to) {
+//       callback();
+//       return;
+//     };
 
-    currentTime += increment;
-    // var val = Math.easeInOutQuad(currentTime, start, change, duration);
-    var start = document.body.scrollTop;
-    var val = Math.easeInOutQuad(currentTime, start, to-start, duration-currentTime);
+//     currentTime += increment;
+//     var val = Math.easeInOutQuad(currentTime, start, change, duration);
+//     // var start = document.body.scrollTop;
+//     // var val = Math.easeInOutQuad(currentTime, start, to-start, duration-currentTime);
 
-    document.body.scrollTop = val;
-    if(currentTime < duration) {
-      setTimeout(animateScroll, increment);
-    } else {
-      callback();
-    };
+//     document.body.scrollTop = val;
+//     if(currentTime < duration) {
+//       setTimeout(animateScroll, increment);
+//     } else {
+//       callback();
+//     };
 
-  };
+//   };
 
-  animateScroll();
-}
+//   animateScroll();
+// }
 
 //t = current time
 //b = start value
 //c = change in value
 //d = duration
-Math.easeInOutQuad = function (t, b, c, d) {
-  t /= d/2;
-  if (t < 1) return c/2*t*t + b;
-  t--;
-  return -c/2 * (t*(t-2) - 1) + b;
-};
+// Math.easeInOutQuad = function (t, b, c, d) {
+//   t /= d/2;
+//   if (t < 1) return c/2*t*t + b;
+//   t--;
+//   return -c/2 * (t*(t-2) - 1) + b;
+// };
+
+// prevent scroll when card-box is not fully displayed
+// function preventScroll (event) {
+
+//   if (document.body.scrollTop + window.innerHeight < document.body.offsetHeight) {
+//     // console.log("scrollTop:"+document.body.scrollTop+" innerHeight:"+window.innerHeight+" totalHeight:"+document.body.offsetHeight);
+//     event.preventDefault();
+//     event.stopPropagation();
+//     // console.log(event.currentTarget.style.height);
+//   }
+
+// };
 
 // setup
-var userScrolling;
 window.mySwipe = Swipe(document.getElementById('report'), {startSlide: 0, continuous: false, callback: function (index, slide) {
 
-  var wrapperHeight = slide.parentNode.getBoundingClientRect().height || slide.parentNode.offsetHeight;
-  var slideHeight = slide.getBoundingClientRect().height || slide.offsetHeight;
+  // var wrapperHeight = slide.parentNode.getBoundingClientRect().height || slide.parentNode.offsetHeight;
+  // var slideHeight = slide.getBoundingClientRect().height || slide.offsetHeight;
 
-  var totalHeight = document.body.offsetHeight - wrapperHeight + slideHeight;
-  var viewHeight = window.innerHeight;
-  var scrollEnd = totalHeight - viewHeight;
-
-  console.log("Preparing...Wrapper:"+wrapperHeight+" Slide:"+slideHeight);
-  // console.log("Preparing...Total:"+totalHeight+" View:"+viewHeight+" To:"+scrollEnd);
+  // var totalHeight = document.body.offsetHeight - wrapperHeight + slideHeight;
+  // var viewHeight = window.innerHeight;
+  // var scrollEnd = totalHeight - viewHeight;
 
   // if (wrapperHeight > slideHeight) {
 
-  scrollTo(slide, scrollEnd, 350, function () {
-    slide.parentNode.style.height = slideHeight + 'px';
-  });
-
-  // };
-
-  // if (document.body.scrollTop + viewHeight < totalHeight) {
+  // scrollTo(slide, scrollEnd, 450, function () {
   //   slide.parentNode.style.height = slideHeight + 'px';
+  // });
+
   // };
 
 }});

@@ -7,7 +7,7 @@
 {% block body %}
   {% if u.__module__ == "libs.beta" %}
     {% module Template("beta/report.html", u=u) %}
-  {% elif u.__module__ == "libs.alpha" %}
+  {% elif u.__module__ == "libs.alpha" or u.__module__ == "libs.alpha2" %}
     {% module Template("alpha/report.html", u=u) %}
   {% end %}
 {% end %}
