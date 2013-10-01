@@ -277,6 +277,7 @@ class ReportHandler(BaseHandler):
         if not u:
             raise tornado.web.HTTPError(404)
 
+        u.terms = sorted(list(set([c.term for c in u.courses.values()])), reverse=True)
         self.render("report.html", u=u)
 
 
