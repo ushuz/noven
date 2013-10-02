@@ -16,7 +16,7 @@ import tornado.template
 from tornado.escape import utf8, _unicode
 
 # Import the main libs for the app.
-from libs import alpha
+from libs import alpha2 as alpha
 from libs import beta
 from libs import NovenFetion
 from libs import NovenWx
