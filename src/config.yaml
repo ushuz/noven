@@ -6,15 +6,15 @@ libraries:
   version: "2.4.1"
 
 cron:
-- description: Update schedule for 1nd term.
+- description: Red
   url: backend/update
-  schedule: "2 0,8,10,12-22/3 * 1-2 *"
-- description: Update schedule for 2nd term.
-  url: backend/update
-  schedule: "2 0,8,10,12-22/3 * 6-7 *"
-- description: Update schedule for the rest.
+  schedule: "2 0,8,10,12-22/3 * 1,2,6,7 *"
+- description: Orange
   url: backend/update
   schedule: "2 0 * 3,8,9,12 *"
+- description: Green
+  url: backend/update
+  schedule: "2 0 */6 4,5,10,11 *"
 
 handlers:
 - url: /static/
