@@ -41,12 +41,12 @@ a:hover {
 
 #main {
     color: white;
-    max-width: 540px;
     margin: auto;
 }
 
 .box {
     margin: auto;
+    max-width: 540px;
 }
 
 /* msg-box Style */
