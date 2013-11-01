@@ -1,20 +1,20 @@
-/* Each slide */
-
-.slide {
-    max-width: 540px;
-}
-
-/* Card box */
+/* card-box Style */
 
 .card-box {
+
+}
+
+/* Cards */
+
+.card {
     min-width: 200px;
-    margin: 20px 10px;
+    margin: 12px 10px 16px 10px;
     border-bottom: 2px #ddd solid;
     border-radius: 3px;
     background: #fff;
 }
 
-.card-box .heading {
+.card .card-heading {
     padding: 5px 10px;
     background: #f5f5f5;
     font-size: 12px;
@@ -26,45 +26,67 @@
     border-top-right-radius: 3px;
 }
 
-.card-box .footer {
+.card .card-scroll {
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+}
+
+.card .card-footer {
     background: #f5f5f5;
     color: #ccc;
     font-size: 12px;
-    padding: 5px 10px;
-    text-align: right;
+    padding: 4px 10px;
+    /*text-align: center;*/
 
     border-top: 1px #eee solid;
     border-bottom-left-radius: 3px;
     border-bottom-right-radius: 3px;
 }
 
-.card-box .card-scroll {
-    /*overflow-y: scroll;*/
-    overflow-y: scroll;
-    -webkit-overflow-scrolling: touch;
-    /*height: 321px;*/
+.position {
+    text-align: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
-.card {
+.position li {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 10px;
+    background: #dfdfdf;
+    box-shadow: inset 0 1px 1px #aaa;
+    margin: 0 5px;
+}
+
+.position li.on {
+    box-shadow: none;
+    background-color: #999;
+}
+
+/* Cells */
+
+.cell {
     padding: 8px 10px;
     color: black;
     border-bottom: 1px #ddd solid;
 }
 
-.card table {
+.cell table {
     padding: 0;
     border: 0;
     width: 100%;
 }
 
-.card .accessories {
+.cell .accessories {
     text-align: left;
     font-size: 12px;
     color: #999;
     /*line-height: 8px;*/
 }
 
-.accessories .title {
+.cell .accessories .title {
     display: inline-block;
     padding: 2px 4px;
     margin-top: 4px;
@@ -73,34 +95,34 @@
     border-radius: 2px;
 }
 
-.card .name {
+.cell .name {
     font-size: 20px;
     font-weight: bold;
 }
 
-.card .subject {
+.cell .subject {
     font-size: 16px;
     /*font-weight: bold;*/
 }
 
-.card .no {
+.cell .no {
     font-size: 12px;
     width: 12px;
     text-align: center;
     /*border-right: 1px #ddd solid */
 }
 
-.card .body {
+.cell .body {
     width: auto;
     padding-left: 10px;
 }
 
-.card .score {
+.cell .score {
     width: 40px;
     text-align: center;
 }
 
-.card .score span {
+.cell .score span {
     /*line-height: 16px;*/
     font-weight: bold;
     color: white;
@@ -115,18 +137,11 @@
     margin-right: 5px;
 }
 
-.card-first {
+.cell-first {
     border-top: 1px #ddd solid;
 }
 
-.activated-True {
-    /*background: url(../img/activated.png) no-repeat;
-    display: inline-block;
-    height: 18px;
-    width: 18px;*/
-}
-
-/* Swipe 2 required styles */
+/* Swipe 2 Required */
 
 .swipe {
     overflow: hidden;
@@ -136,18 +151,20 @@
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
 }
+
 .swipe-wrap {
     overflow: hidden;
     position: relative;
 }
+
 .swipe-wrap > div {
     float:left;
     width:100%;
     position: relative;
 }
 
-/*Keep the space between slides and about*/
+/* Hide Logo */
 
-.swipe .card-box {
-    margin-top: 0;
+#header {
+    display: none;
 }

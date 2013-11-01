@@ -5,9 +5,47 @@
 {% block head %}<link rel="stylesheet" href="{{ static_url('css/report.css') }}">{% end %}
 
 {% block body %}
-  {% if u.__module__ == "libs.beta" %}
-    {% module Template("beta/report.html", u=u) %}
-  {% elif u.__module__ == "libs.alpha" or u.__module__ == "libs.alpha2" %}
-    {% module Template("alpha/report.html", u=u) %}
-  {% end %}
+  <div class="box card-box"><div class="swipe" id="report"><div class="swipe-wrap">
+{% for t in u.terms %}
+  <div class="slide">
+    <div class="card">
+
+      <div class="card-heading">
+        <span>{{ t[:4] }}-{{ int(t[:4])+1 }}学年</span><br />
+        <span>第{{ t[-1] }}学期</span>
+      </div>
+
+      <div class="card-scroll">
+    {% for i, c in enumerate([c for c in u.courses.values() if t in c.term]) %}
+        <div class="cell{% if i==0 %} cell-first{% end %}">
+          <table><tbody><tr>
+            <td class="no"><span>{{ i+1 }}</span></td>
+            <td class="body">
+              <span class="subject">{{ c.subject }}</span><br />
+              <span class="accessories">
+                <span class="title">学分</span> {{ c.point }}
+              {% if u.__module__ == "libs.beta" %}
+                <span class="title">绩点</span> {{ c.grade }}
+              {% end %}
+              </span>
+            </td>
+            <td class="score"><span>{{ c.score }}</span></td>
+          </tr></tbody></table>
+        </div>
+    {% end %}
+      </div>
+
+      <div class="card-footer">
+        <nav>
+          <ul class="position">
+            {% for i in u.terms %}<li{%if i == t %} class="on"{% end %}></li>{% end %}
+          </ul>
+        </nav>
+      </div>
+
+    </div>
+  </div>
+{% end %}
+  </div></div></div>
+<script src="{{ static_url('js/swipe.js') }}"></script>
 {% end %}

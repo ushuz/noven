@@ -57,7 +57,7 @@ function Swipe(container, options) {
     width = container.getBoundingClientRect().width || container.offsetWidth;
 
     // determine height of card-scroll BY ushuz
-    var height = window.innerHeight<400 ? window.innerHeight-36 : window.innerHeight-96;
+    var height = window.innerHeight<400 ? window.innerHeight-35 : window.innerHeight-95;
 
     element.style.width = (slides.length * width) + 'px';
 
@@ -78,14 +78,8 @@ function Swipe(container, options) {
       // set fixed height for every card-scroll BY ushuz
       var cardScroll = slide.children[0].children[1];
       cardScroll.style.height = height + 'px';
-      // cardScroll.addEventListener("touchmove", preventScroll);
-      // cardScroll.ontouchmove = preventScroll;
 
     }
-
-    // after stacking element slide height changes BY ushuz
-    // set default wrapper height to first slide BY ushuz
-    element.style.height = ((slides[index].offsetHeight || slides[index].getBoundingClientRect().height)) + 'px';
 
     // reposition elements before and after index
     if (options.continuous && browser.transitions) {
@@ -626,21 +620,25 @@ function Swipe(container, options) {
 // };
 
 // setup
-window.mySwipe = Swipe(document.getElementById('report'), {startSlide: 0, continuous: false, callback: function (index, slide) {
+window.mySwipe = Swipe(document.getElementById('report'), {
+  startSlide: 0,
+  continuous: false,
+  disableScroll: false,
+  callback: function (index, slide) {
 
-  // var wrapperHeight = slide.parentNode.getBoundingClientRect().height || slide.parentNode.offsetHeight;
-  // var slideHeight = slide.getBoundingClientRect().height || slide.offsetHeight;
+    // var wrapperHeight = slide.parentNode.getBoundingClientRect().height || slide.parentNode.offsetHeight;
+    // var slideHeight = slide.getBoundingClientRect().height || slide.offsetHeight;
 
-  // var totalHeight = document.body.offsetHeight - wrapperHeight + slideHeight;
-  // var viewHeight = window.innerHeight;
-  // var scrollEnd = totalHeight - viewHeight;
+    // var totalHeight = document.body.offsetHeight - wrapperHeight + slideHeight;
+    // var viewHeight = window.innerHeight;
+    // var scrollEnd = totalHeight - viewHeight;
 
-  // if (wrapperHeight > slideHeight) {
+    // if (wrapperHeight > slideHeight) {
 
-  // scrollTo(slide, scrollEnd, 450, function () {
-  //   slide.parentNode.style.height = slideHeight + 'px';
-  // });
+    // scrollTo(slide, scrollEnd, 450, function () {
+    //   slide.parentNode.style.height = slideHeight + 'px';
+    // });
 
-  // };
+    // };
 
-}});
+  }});
