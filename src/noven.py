@@ -168,6 +168,8 @@ class SignupHandler(BaseHandler):
             while True:
                 try:
                     fetion.login()
+                    fetion.send_sms(c)
+                    fetion.logout()
                 except NovenFetion.AuthError as e:
                     logging.info("%s - Sign-up Failed: %s", ucode, e)
                     self.redirect("/sorry")
@@ -175,8 +177,6 @@ class SignupHandler(BaseHandler):
                 except Exception:
                     continue
                 break
-            fetion.send_sms(c)
-            fetion.logout()
 
             # If SMS is sent, log and move on.
             logging.info("%s - SMS Sent: To %s.", ucode, n)
