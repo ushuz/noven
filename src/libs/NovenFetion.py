@@ -37,6 +37,7 @@ class Fetion(object):
         try:
             r = self.session.post(HOST+"/im5/login/loginHtml5.action", data=login_payload)
             tip = r.json()["tip"]
+            id_ = r.json()["idUser"]
         except:
             raise ConnError("%s - ConnError: Login" % self.mobile)
 
@@ -49,7 +50,7 @@ class Fetion(object):
         if tip:
             raise ConnError("%s - ConnError: %s" % (self.mobile, tip))
 
-        self.id = r.json()["idUser"]
+        self.id = id_
 
     def send_sms(self, msg):
         '''/im5/chat/sendNewGroupShortMsg.action
@@ -69,10 +70,11 @@ class Fetion(object):
 
         try:
             r = self.session.post(HOST+"/im5/chat/sendNewGroupShortMsg.action", data=msg_payload)
+            c = r.json()["sendCode"]
         except:
             raise ConnError("%s - ConnError: Send SMS" % self.mobile)
 
-        return r.json()["sendCode"]
+        return c
 
     def logout(self):
         '''/im5/index/logoutsubmit.action'''
