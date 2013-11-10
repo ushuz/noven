@@ -1,7 +1,8 @@
 # -*- coding:utf-8 -*-
 
-import os
+import httplib
 import logging
+import os
 
 import sae
 import tornado.wsgi
@@ -11,10 +12,6 @@ import noven    # Main logic
 import admin    # Administration
 import api
 
-
-# Global logging settings
-logging.basicConfig(format="%(levelname).1s [%(asctime).19s] %(message)s", level=logging.INFO)
-logging.getLogger("libs.requests").setLevel(logging.WARNING)
 
 settings = {
     "debug": False,
@@ -29,10 +26,9 @@ settings = {
 }
 
 handlers = [
-    (r"/", noven.SignupHandler),
-    (r"/welcome", noven.WelcomeHandler),
+    (r"/", noven.HomeHandler),
     (r"/verify", noven.VerifyHandler),
-    (r"/sorry", noven.SorryHandler),
+    (r"/welcome", noven.WelcomeHandler),
     (r"/weixin", noven.WxHandler),
     (r"/mine", noven.ReportHandler),
 
@@ -45,15 +41,29 @@ handlers = [
     (r"/admin/msg", admin.GroupMessage)
 ]
 
+# Customized Error Code
+httplib.responses.update({
+    421: "User Auth Failed",
+    422: "Mobile Auth Failed",
+    423: "Not Supported",
+    424: "Unknown",
+    425: "Activation Failed"
+})
+
 if "SERVER_SOFTWARE" not in os.environ:
+    # Enable debug mode
+    # Template will autoreload in debug mode
+    settings["debug"] = True
+
     # Local static path
     settings["static_path"] = os.path.join(os.path.dirname(__file__), "../assets")
 
     # Disable CSRF defense in convenience of testing
     settings["xsrf_cookies"] = False
 
-    # Set logging level to DEBUG when run locally
-    logging.getLogger().setLevel(logging.DEBUG)
+    # Debug logging settings
+    logging.basicConfig(format="%(asctime)s,%(msecs)d - %(levelname)s [%(name)s] %(message)s", level=logging.DEBUG, datefmt="%H:%M:%S")
+    logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
     # API for test
     # Handler for temporarily use
@@ -64,6 +74,10 @@ if "SERVER_SOFTWARE" not in os.environ:
     handlers.append((r"/api/cs", api.CreateSignature))
     # Render the given template
     handlers.append((r"/(.+?).html", api.UIDebugHandler))
+
+# Global logging settings
+logging.basicConfig(format="%(levelname)s [%(name)s] %(message)s", level=logging.INFO)
+logging.getLogger("libs.requests").setLevel(logging.WARNING)
 
 app = tornado.wsgi.WSGIApplication(handlers, **settings)
 application = sae.create_wsgi_app(app)

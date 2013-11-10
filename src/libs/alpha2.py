@@ -6,6 +6,7 @@ import functools
 
 import requests
 
+
 ALL_TERMS = True
 LOGIN_URL = "http://jwxt.bjfu.edu.cn/jwxt/logon.asp"
 NAME_URL = "http://jwxt.bjfu.edu.cn/jwxt/menu.asp"
@@ -132,25 +133,22 @@ class User(object):
         m = re.search(pattern, r.content.decode("gbk"))
         if m:
             self.name = m.groups()[0]
-            logging.debug("%s - [alpha] Name found: %s", self.usercode, self.name)
+            log.debug("%s - Name found: %s", self.usercode, self.name)
             return self.name
 
     def _get_GPA(self, r, all=False):
         """Save and return all-term GPA or current-term GPA respectly.
-
-        If `all`, the result will be saved to `GPA`. Otherwise, the result
-        will be saved to `current_GPA`.
         """
         pattern = u"<p>在本查询时间段，你的学分积为(.+?)、必修课取"
         m = re.search(pattern, r.content.decode("gb2312"))
         if m:
             if all:
                 self.GPA = m.group(1)
-                logging.debug("%s - [alpha] GPA updated: %s", self.usercode, self.GPA)
+                log.debug("%s - GPA updated: %s", self.usercode, self.GPA)
                 return self.GPA
             else:
                 self.current_GPA = m.group(1)
-                logging.debug("%s - [alpha] Current GPA updated: %s", self.usercode, self.current_GPA)
+                log.debug("%s - Current GPA updated: %s", self.usercode, self.current_GPA)
                 return self.current_GPA
 
     def _get_courses(self, r):
@@ -165,7 +163,7 @@ class User(object):
             # IndexError sometimes occurs when saving rank.  It appears that
             # malformed response we received is to blame, i.e. `r.content` is
             # not completed.
-            logging.error("%s - [alpha] Something wrong with the returning data.", self.usercode)
+            log.error("%s - Something wrong with the returning data.", self.usercode)
             return {}
 
         # Save the rank calculated by JWXT.
@@ -175,9 +173,9 @@ class User(object):
                 if u"全学程" in l[-1].contents[1].contents[2].string \
                 else l[-1].contents[1].contents[3].string[5:]
         except IndexError as e:
-            logging.error("%s - Can't get rank for the user.", self.usercode)
+            log.error("%s - Can't get rank for the user.", self.usercode)
 
-        logging.debug("%s - [alpha] Rank saved: %s", self.usercode, self.rank)
+        log.debug("%s - Rank saved: %s", self.usercode, self.rank)
 
         # Delete unnecessary data.
         del l[0]
@@ -187,7 +185,7 @@ class User(object):
         courses = self.courses.values()
         for i in l:
             if len(i.contents) < 4:
-                logging.debug("%s - [alpha] Too few `i.contents`.", self.usercode)
+                log.debug("%s - Too few `i.contents`.", self.usercode)
                 continue
             # Normal cases.
             if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
@@ -206,7 +204,7 @@ class User(object):
                 key = course.term + course.subject
                 if course not in courses:
                     new_courses[key] = course
-                    logging.debug("%s - [alpha] A new course: %s", self.usercode, key)
+                    log.debug("%s - Course: %s", self.usercode, key)
             # Special cases.
             # If the course is released before Rating System being closed,
             # score will not be displayed.
@@ -221,7 +219,7 @@ class User(object):
                 key = course.term + course.subject
                 if not self.courses.has_key(key):
                     new_courses[key] = course
-                    logging.debug("%s - [alpha] A new course: %s", self.usercode, key)
+                    log.debug("%s - A new course: %s", self.usercode, key)
             else:
                 # If no course was created, we should simply continue in case
                 # of encountering NameError later.
@@ -263,8 +261,8 @@ class User(object):
         r = self._fetch_now()
         self._get_GPA(r)
 
-        logging.info("%s - Initiated: [Name] %s [Courses] %d [GPA] %s [c_GPA] %s",
-            self.usercode, self.name, len(self.courses), self.GPA, self.current_GPA)
+        log.debug("%s - %s has %d courses in total.",
+            self.usercode, self.name, len(self.courses))
 
         self._logout()
 
@@ -290,13 +288,15 @@ class User(object):
             r = self._fetch_now()
             self._get_GPA(r)
 
-            logging.info("%s - Updated: [Name] %s [Courses] %d [GPA] %s [c_GPA] %s",
-                self.usercode, self.name, len(new_courses), self.GPA, self.current_GPA)
+            log.debug("%s - %s has %d new courses.",
+                self.usercode, self.name, len(new_courses))
 
         self._logout()
         return new_courses
 
+# Get logger before logging.
+log = logging.getLogger("alpha")
 
 if __name__ == "__main__":
-    logging.basicConfig(format="%(levelname).1s [%(asctime).19s] %(message)s", level=logging.DEBUG)
+    logging.basicConfig(format="%(asctime)s,%(msecs)d - %(levelname)s [%(name)s] %(message)s", level=logging.DEBUG, datefmt="%H:%M:%S")
     logging.getLogger("requests").setLevel(logging.WARNING)

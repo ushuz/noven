@@ -140,7 +140,7 @@ class User(object):
         m = re.search(pattern, data)
         if m:
             self.name = m.groups()[0]
-            logging.debug("%s - Name found: %s", self.usercode, self.name)
+            log.debug("%s - Name found: %s", self.usercode, self.name)
             return self.name
 
     def _get_courses(self, data):
@@ -156,7 +156,7 @@ class User(object):
         courses = self.courses.values()
         for i in l:
             if len(i.contents) != 8:
-                logging.debug("%s - Something wrong with `i.contents`.", self.usercode)
+                log.debug("%s - Something wrong with `i.contents`.", self.usercode)
                 continue
 
             # Normal cases.
@@ -175,7 +175,7 @@ class User(object):
             key = course.term + course.subject
             if course not in courses:
                 new_courses[key] = course
-                logging.debug("%s - A new course: %s", self.usercode, key)
+                log.debug("%s - Course: %s", self.usercode, key)
 
         # Save newly-released courses.
         self.courses.update(new_courses)
@@ -188,7 +188,7 @@ class User(object):
             m += float(v.point)*float(v.grade)
             t += float(v.point)
         self.GPA = u"%.2f" % (m / t)
-        logging.debug("%s - GPA updated: %s", self.usercode, self.GPA)
+        log.debug("%s - GPA updated: %s", self.usercode, self.GPA)
         return self.GPA
 
     def _init(self):
@@ -199,8 +199,8 @@ class User(object):
         self._get_courses(data)
         self._get_GPA()
 
-        logging.info("%s - Initiated: [Name] %s [Courses] %d [GPA] %s",
-            self.usercode, self.name, len(self.courses), self.GPA)
+        log.info("%s - %s has %d courses in total.",
+            self.usercode, self.name, len(self.courses))
 
         self._logout()
 
@@ -215,13 +215,16 @@ class User(object):
         new_courses = self._get_courses(data)
         if new_courses:
             self._get_GPA()
-            logging.info("%s - Updated: [Name] %s [Courses] %d [GPA] %s",
-                self.usercode, self.name, len(new_courses), self.GPA)
+            log.info("%s - %s has %d new courses.",
+                self.usercode, self.name, len(new_courses))
 
         self._logout()
 
         return new_courses
 
+
+# Get logger before logging.
+log = logging.getLogger("beta")
 
 if __name__ == "__main__":
     logging.basicConfig(format="%(levelname).1s [%(asctime).19s] %(message)s", level=logging.DEBUG)
