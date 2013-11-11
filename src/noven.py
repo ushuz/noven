@@ -262,7 +262,7 @@ class WelcomeHandler(SignUpHandler):
             if u.wx_id:
                 self.kv.set(utf8(u.wx_id), utf8(u.usercode))
 
-            if u.mobileno:
+            if u.mobileno and u.mobilepass:
                 wellinfo = utf8(create_message(u.TPL_WELCOME, u=u))
                 wellinfo = base64.b64encode(wellinfo)
                 sae.taskqueue.add_task(
@@ -524,6 +524,11 @@ class SMSById(TaskHandler):
         n = utf8(u.mobileno)  # Mobile number
         p = utf8(u.mobilepass)  # Fetion password
         c = base64.b64decode(self.request.body) + "[Noven]"  # SMS content
+
+        # There are chances only mobile was saved.
+        if not n or not p:
+            log.error("%s - Mobile or password missing.", id)
+            return
 
         fetion = NovenFetion.Fetion(n, p)
         while True:
