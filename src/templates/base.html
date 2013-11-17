@@ -7,6 +7,12 @@
   <title>{% block title %}主页 - Noven{% end %}</title>
   <link rel="stylesheet" type="text/css" href="{{ static_url('css/normalize.css')}}" />
   <link rel="stylesheet" type="text/css" href="{{ static_url('css/base.css')}}" />
+  <script>
+    document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+      WeixinJSBridge.call('hideToolbar');
+      WeixinJSBridge.call('hideOptionMenu');
+    });
+  </script>
   {% block head %}{% end %}
 </head>
 <body>
