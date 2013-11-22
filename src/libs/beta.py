@@ -199,7 +199,7 @@ class User(object):
         self._get_courses(data)
         self._get_GPA()
 
-        log.info("%s - %s has %d courses in total.",
+        log.debug("%s - %s has %d courses in total.",
             self.usercode, self.name, len(self.courses))
 
         self._logout()
@@ -215,7 +215,7 @@ class User(object):
         new_courses = self._get_courses(data)
         if new_courses:
             self._get_GPA()
-            log.info("%s - %s has %d new courses.",
+            log.debug("%s - %s has %d new courses.",
                 self.usercode, self.name, len(new_courses))
 
         self._logout()
