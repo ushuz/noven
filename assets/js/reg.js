@@ -1,5 +1,5 @@
 // With digitOnly() users shall only input digits in UserCode & MobileNo fields.
-var digitOnly = function(event) {return (/[\d]/.test(String.fromCharCode(event.keyCode)))};
+var digitOnly = function(event) {return (/[\d]/.test(String.fromCharCode(event.charCode||event.keyCode)))};
 
 // Validate submit data.
 var checkForm = function() {
