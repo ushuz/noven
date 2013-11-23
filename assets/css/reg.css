@@ -1,5 +1,6 @@
 .reg-box {
-    padding: 60px 10px;
+    text-align: center;
+    padding: 60px 10px 0 10px;
 }
 
 .reg-item {
@@ -9,18 +10,16 @@
 .reg-box label {
     text-align: right;
     width: 60px;
-    /*line-height: 30px;*/
-    vertical-align: middle;
     display: inline-block;
     margin-right: 20px;
 }
 
 .input {
     width: 200px;
-    height: 18px;
-    padding: 5px;
+    height: 20px;
+    padding: 6px;
     border-radius: 2px;
-    border: 1px solid #ccc;
+    border: 0;
 }
 
 .btn {
@@ -28,7 +27,7 @@
     background: #808080;
     border: none;
     color: white;
-    height: 30px;
+    height: 34px;
 }
 
 .btnValid {
@@ -51,12 +50,15 @@
 
 @media (max-width: 767px) {
     .reg-box {
-        text-align: center;
         padding-top: 0;
     }
 
     .reg-box form {
-        padding: 20px 0;
+        padding: 20px 0 3px;
+    }
+
+    .reg-box label {
+        margin-right: 10px;
     }
 
     .tips {
