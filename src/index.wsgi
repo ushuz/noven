@@ -46,8 +46,8 @@ httplib.responses.update({
     421: "User Auth Failed",
     422: "Mobile Auth Failed",
     423: "Not Supported",
-    424: "Unknown",
-    425: "Activation Failed"
+    425: "Activation Failed",
+    444: "Unknown",
 })
 
 if "SERVER_SOFTWARE" not in os.environ:
@@ -62,7 +62,7 @@ if "SERVER_SOFTWARE" not in os.environ:
     settings["xsrf_cookies"] = False
 
     # Debug logging settings
-    logging.basicConfig(format="%(asctime)s,%(msecs)d - %(levelname)s [%(name)s] %(message)s", level=logging.DEBUG, datefmt="%H:%M:%S")
+    logging.basicConfig(format="%(asctime)s.%(msecs)0.3d - %(levelname)s [%(name)s] %(message)s", level=logging.DEBUG, datefmt="%H:%M:%S")
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
     # API for test

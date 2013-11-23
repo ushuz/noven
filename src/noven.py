@@ -5,6 +5,7 @@ import functools
 import hashlib
 import logging
 import os
+import re
 import time
 
 import sae
@@ -32,7 +33,7 @@ def authenticated(method):
     def wrapper(self, *args, **kwargs):
         if not self.current_user:
             self.clear_all_cookies()
-            raise tornado.web.HTTPError(424)
+            raise tornado.web.HTTPError(444)
         return method(self, *args, **kwargs)
     return wrapper
 
@@ -60,7 +61,7 @@ class BaseHandler(tornado.web.RequestHandler):
     def write_error(self, status_code, **kwargs):
         errors = {
             # 401 for token expired
-            401: "链接已失效，请重新获取。",
+            401: "链接已失效，请回复「菜单」重新获取。",
 
             # 404 for non-existence resources
             404: "您要的东西不在这儿。",
@@ -70,7 +71,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
             # 422 for wrong mobile or password
             422: "手机号码或飞信密码有误。<br />" \
-                "若忘记飞信密码，请编辑新密码发送到12520050即可。",
+                "若忘记飞信密码，请编辑新密码发送至12520050。",
 
             # 423 for non-CMCC mobile
             423: "仅支持中国移动号码。",
@@ -78,7 +79,7 @@ class BaseHandler(tornado.web.RequestHandler):
             # 425 for activation
             425: "验证码有误。",
 
-            # 426 for duplicate sign-up
+            # 444 for unknown
         }
 
         # 5XX for server
@@ -155,14 +156,18 @@ class HomeHandler(SignUpHandler):
         if create_signature(t) != s:
             # If failed on consistency, raise, no fallback.
             self.log.error("%s - Invalid token: %s.", ucode, t)
-            raise tornado.web.HTTPError(424)
+            raise tornado.web.HTTPError(444)
 
         # Check mobile.
         if mcode and (len(mcode) != 11 or not mcode.isdigit() or not mpass):
             self.log.error("%s - Invalid mobile: %s.", ucode, mcode)
             raise tornado.web.HTTPError(422)
 
-        # TODO: Check carrier
+        # Check carrier
+        pattern = r"^1(3[4-9]|47|5[0-2]|5[7-9]|8[2-4]|8[7-8])\d{8}"
+        if mcode and not re.match(pattern, mcode):
+            self.log.error("%s - Non-CMCC mobile: %s", ucode, mcode)
+            raise tornado.web.HTTPError(423)
 
         try:
             # 9 digits for BJFU
@@ -182,7 +187,7 @@ class HomeHandler(SignUpHandler):
             self.log.error("%s - %s", ucode, e)
             raise tornado.web.HTTPError(421)
 
-        self.log.info("%s - User created.", ucode)
+        # self.log.info("%s - User created.", ucode)
         self.set_secure_cookie("uc", ucode)
 
         TPL_VCODE = u'''Hello，%s！您的登记验证码：%s [Noven]'''
@@ -222,7 +227,7 @@ class HomeHandler(SignUpHandler):
             self.redirect("/welcome")
         else:
             self.log.critical("%s - Invalid User Object.", ucode, e)
-            raise tornado.web.HTTPError(424)
+            raise tornado.web.HTTPError(444)
 
 
 class VerifyHandler(SignUpHandler):
@@ -288,11 +293,11 @@ class ReportHandler(BaseHandler):
         log = logging.getLogger("Noven.Report")
 
         # Authenticate the user.
-        # Turn down illegal accesses by 424.  If shit happened to normal
-        # users, 424 can guide them to contact Noven.
+        # Turn down illegal accesses by 444.  If shit happened to normal
+        # users, 444 can guide them to contact Noven.
         if not t or not s or not n or create_signature(t[:20]+n[-8:]) != s:
             log.error("%s - Illegal access.", t)
-            raise tornado.web.HTTPError(424)
+            raise tornado.web.HTTPError(444)
 
         # Session expires in 24 hours.
         # Tell users their Token expired by 401.
@@ -304,13 +309,13 @@ class ReportHandler(BaseHandler):
         # Check if usercode was successfully retrieved.
         if not uc:
             log.critical("%s - Failed to retrieve usercode.", t)
-            raise tornado.web.HTTPError(424)
+            raise tornado.web.HTTPError(444)
 
         u = self.kv.get(uc)
         # Check if User object was successfully retrieved.
         if not u:
             log.critical("%s - Failed to retrieve user.", uc)
-            raise tornado.web.HTTPError(424)
+            raise tornado.web.HTTPError(444)
 
 
         u.terms = sorted(list(set([c.term for c in u.courses.values()])), reverse=True)
@@ -387,8 +392,8 @@ class WxHandler(TaskHandler):
             self.reply(u"Hello，%s！欢迎回来！" % u.name)
             return
 
-        # Unsubscribe event.
-        # Deactivate users when they unsubscribe to save unnecessary update.
+        # Un-Subscribe event.
+        # Deactivate users when they un-subscribe to save unnecessary update.
         # In case of users' returning back, we don't delete data.
         if isinstance(msg, NovenWx.ByeMessage):
             u.verified = False
@@ -436,7 +441,7 @@ class UpdateAll(TaskHandler):
             id = ""
             for id in ids:
                 sae.taskqueue.add_task("update_queue", "/backend/update/%s" % id)
-        except sae.taskqueue.Error as e:
+        except sae.kvdb.Error as e:
             sae.taskqueue.add_task("update_queue", "/backend/update?marker=%s" % id)
 
         # BJFU update.
@@ -445,7 +450,7 @@ class UpdateAll(TaskHandler):
             uc = ""
             for uc in ucs:
                 sae.taskqueue.add_task("update_queue", "/backend/update/%s" % uc)
-        except sae.taskqueue.Error as e:
+        except sae.kvdb.Error as e:
             # KVDB is annoying.  We may encounter different errors, such as `Timed
             # Out`, `No Server Available`, etc.  We should just continue from here.
             sae.taskqueue.add_task("update_queue", "/backend/update?marker=%s" % uc)
