@@ -279,7 +279,8 @@ class WelcomeHandler(SignUpHandler):
             self.log.info("%s - Name: %s Courses: %d",
                 u.usercode, u.name, len(u.courses))
         else:
-            self.redirect("/")
+            self.log.critical("In-Active users accessing welcome page.")
+            raise tornado.web.HTTPError(444)
 
 
 class ReportHandler(BaseHandler):
@@ -299,9 +300,9 @@ class ReportHandler(BaseHandler):
             log.error("%s - Illegal access.", t)
             raise tornado.web.HTTPError(444)
 
-        # Session expires in 24 hours.
+        # Session expires in 30 min.
         # Tell users their Token expired by 401.
-        if time.time() - float(n) > 3600 * 24:
+        if time.time() - float(n) > 1800:
             log.error("%s - Token expired.", t)
             raise tornado.web.HTTPError(401)
 
@@ -341,7 +342,7 @@ class WxHandler(TaskHandler):
         log = logging.getLogger("Noven.Weixin")
 
         # print msg.fr+" "+str(type(msg))
-        log.info("%s %s", msg.fr, str(type(msg)))
+        log.info("%s - %s", msg.fr, str(type(msg)))
 
         if isinstance(msg, NovenWx.BlahMessage):
             if msg.content[1:] == u"成绩单":
@@ -416,7 +417,7 @@ class WxHandler(TaskHandler):
         if content == "guide":
             self.render("guide.xml", to=msg, create_signature=create_signature)
         elif content == "menu":
-            self.render("menu.xml", to=msg, create_signature=create_signature)
+            self.render("menu-with-report.xml", to=msg, create_signature=create_signature)
         else:
             self.render("text.xml", to=msg, content=content)
 
