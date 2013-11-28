@@ -6,5 +6,5 @@
 
 {% block body %}<div class="box msg-box" >
   <h1>登记成功</h1>
-  <p>Hello，{{ current_user.name }}！您已成功登记！{% if current_user.wx_id %}和 Noven 打个招呼吧？{% end %}</p>
+  <p>Hello，{{ current_user.name }}！{% if current_user.wx_id %}和 Noven 打个招呼吧？{% end %}</p>
 </div>{% end %}
