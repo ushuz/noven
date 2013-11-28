@@ -31,7 +31,7 @@ def parse(xmlstring):
                 # A guide message should be returned at last.
                 return HelloMessage(to, fr, time)
 
-            if content == u"菜单":
+            if content in (u"菜单", u"成绩单", u"选课指南", u"选课"):
                 # Requesting menu.
                 return MenuMessage(to, fr, time)
 
