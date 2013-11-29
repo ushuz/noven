@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="format-detection"content="telephone=no" />
+  <meta name="format-detection" content="telephone=no" />
   <title>{% block title %}主页 - Noven{% end %}</title>
-  <link rel="stylesheet" type="text/css" href="{{ static_url('css/normalize.css')}}" />
-  <link rel="stylesheet" type="text/css" href="{{ static_url('css/base.css')}}" />
+  <link rel="stylesheet" href="{{ static_url('css/normalize.css')}}">
+  <link rel="stylesheet" href="{{ static_url('css/base.css')}}">
   <script>
     document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
       WeixinJSBridge.call('hideToolbar');
