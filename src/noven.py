@@ -214,6 +214,9 @@ class HomeHandler(SignUpHandler):
                 except NovenFetion.AuthError as e:
                     self.log.error("%s - %s", ucode, e)
                     raise tornado.web.HTTPError(422)
+                except NovenFetion.Critical as e:
+                    self.log.critical("%s - %s", ucode, e)
+                    raise tornado.web.HTTPError(444)
                 except Exception:
                     continue
                 break
@@ -553,6 +556,9 @@ class SMSById(TaskHandler):
                 u.verified = False
                 self.kv.set(utf8(id), u)
                 log.info("%s - De-Activated: User changed Fetion password.", id)
+                return
+            except NovenFetion.Critical as e:
+                log.critical("%s - %s", id, e)
                 return
             except Exception:
                 continue

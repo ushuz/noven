@@ -13,6 +13,10 @@ class ConnError(Exception):
     '''Failed to connect to fetion servers.'''
 
 
+class Critical(Exception):
+    '''Halt NovenFetion.'''
+
+
 class Fetion(object):
     '''A simplified 3G Fetion.
     Only reserved login(), send_sms(), logout().'''
@@ -48,7 +52,7 @@ class Fetion(object):
             raise AuthError("%s - AuthError: Wrong Mobile" % self.mobile)
 
         if tip:
-            raise ConnError("%s - ConnError: %s" % (self.mobile, tip))
+            raise Critical("%s - Critical: %s" % (self.mobile, tip))
 
         self.id = id_
 
