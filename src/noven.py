@@ -159,8 +159,13 @@ class HomeHandler(SignUpHandler):
             raise tornado.web.HTTPError(444)
 
         # Check mobile.
-        if mcode and (len(mcode) != 11 or not mcode.isdigit() or not mpass):
+        if mcode and (len(mcode) != 11 or not mcode.isdigit()):
             self.log.error("%s - Invalid mobile: %s.", ucode, mcode)
+            raise tornado.web.HTTPError(422)
+
+        # Check fetion password
+        if mcode and not mpass:
+            self.log.error("%s - No fetion password: %s", ucode, mcode)
             raise tornado.web.HTTPError(422)
 
         # Check carrier
@@ -223,7 +228,7 @@ class HomeHandler(SignUpHandler):
         elif new_user.wx_id:
             new_user.verified = True
             self.kv.set(utf8(new_user.usercode), new_user)
-            self.log.info("%s - Activated.", ucode)
+            # self.log.info("%s - Activated.", ucode)
             self.redirect("/welcome")
         else:
             self.log.critical("%s - Invalid User Object.", ucode, e)
@@ -243,7 +248,7 @@ class VerifyHandler(SignUpHandler):
         if vcode.lower() == hashlib.sha1(self.get_cookie("uc")).hexdigest()[:6]:
             u.verified = True
             self.kv.set(utf8(u.usercode), u)
-            self.log.info("%s - Activated.", u.usercode)
+            # self.log.info("%s - Activated.", u.usercode)
             self.redirect("/welcome")
         else:
             self.log.error("%s - Wrong Activation code.", u.usercode)
@@ -342,7 +347,7 @@ class WxHandler(TaskHandler):
         log = logging.getLogger("Noven.Weixin")
 
         # print msg.fr+" "+str(type(msg))
-        log.info("%s - %s", msg.fr, str(type(msg)))
+        # log.info("%s - %s", msg.fr, str(type(msg)))
 
         if isinstance(msg, NovenWx.BlahMessage):
             if msg.content[1:] == u"成绩单":
