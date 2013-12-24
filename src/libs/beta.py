@@ -101,7 +101,11 @@ class User(object):
             self._logout()
             if u"欠费".encode("gb2312") in r.content:
                 raise Exception("Wrong user status.")
-            raise AuthError("Wrong usercode or password.")
+            if u"密码错误".encode("gb2312") in r.content:
+                raise AuthError("Wrong password.")
+            if u"用户名不存在".encode("gb2312") in r.content:
+                raise AuthError("Wrong usercode.")
+            raise Exception("Unknown: %d %s %r" % (r.status_code, r.url, r.history))
 
     def _logout(self):
         # Session should be cleared in case of bad things.
