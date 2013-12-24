@@ -134,7 +134,7 @@ class HomeHandler(SignUpHandler):
     def get(self):
         t = self.get_argument("t", None)
         s = self.get_argument("s", None)
-        total = self.kv.get_info()["total_count"]
+        total = self.kv.get_info()["total_count"] / 2
         self.render("signup.html", total=total, t=t, s=s)
 
     def post(self):
