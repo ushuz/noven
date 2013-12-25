@@ -51,8 +51,11 @@ class Fetion(object):
         if tip == u"未注册飞信服务":
             raise AuthError("%s - AuthError: Wrong Mobile" % self.mobile)
 
+        if u"验证" in tip:
+            raise Critical("%s - Critical: Verification Required" % self.mobile)
+
         if tip:
-            raise Critical("%s - Critical: %s" % (self.mobile, tip))
+            raise ConnError("%s - ConnError: %s" % (self.mobile, tip))
 
         self.id = id_
 
