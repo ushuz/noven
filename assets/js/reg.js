@@ -14,7 +14,7 @@ var checkForm = function() {
         if ((uc.value.length<9 && uc.value.length>10) || up.value.length==0) {
             return false;
         }
-        if (!t && !s) {
+        if (!t && !s || mc.value) {
             if (mc.value.length!=11 || mp.value.length==0) {
                 return false;
             }
