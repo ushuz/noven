@@ -172,7 +172,7 @@ class User(object):
             self.rank = l[-1].contents[1].contents[2].string[5:] \
                 if u"全学程" in l[-1].contents[1].contents[2].string \
                 else l[-1].contents[1].contents[3].string[5:]
-        except IndexError as e:
+        except Exception as e:
             log.error("%s - Can't get rank for the user.", self.usercode)
 
         log.debug("%s - Rank saved: %s", self.usercode, self.rank)
