@@ -46,6 +46,7 @@ httplib.responses.update({
     421: "User Auth Failed",
     422: "Mobile Auth Failed",
     423: "Not Supported",
+    424: "Duplicate Sign Up",
     425: "Activation Failed",
     444: "Unknown",
 })

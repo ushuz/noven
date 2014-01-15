@@ -64,7 +64,7 @@ class BaseHandler(tornado.web.RequestHandler):
             401: "链接已失效，请回复「菜单」重新获取。",
 
             # 404 for non-existence resources
-            404: "您要的东西不在这儿。",
+            404: "你要的东西不在这儿。",
 
             # 421 for wrong usercode or password
             421: "学号或教务系统密码有误。",
@@ -75,6 +75,9 @@ class BaseHandler(tornado.web.RequestHandler):
 
             # 423 for non-CMCC mobile
             423: "仅支持中国移动号码。",
+
+            # 424 for duplicate sign-up
+            424: "别淘气，你已经登记过了。",
 
             # 425 for activation
             425: "验证码有误。",
@@ -173,6 +176,14 @@ class HomeHandler(SignUpHandler):
         if mcode and not re.match(pattern, mcode):
             self.log.error("%s - Non-CMCC mobile: %s", ucode, mcode)
             raise tornado.web.HTTPError(423)
+
+        # Check duplicate sign-up
+        # Duplicate means 1 weixin 2 profiles.
+        # 2 weixin 1 profile is not my concern.
+        uc = self.kv.get(str(t))
+        if uc and uc != ucode:
+            self.log.error("%s - Duplicate.", ucode)
+            raise tornado.web.HTTPError(424)
 
         try:
             # 9 digits for BJFU
@@ -349,13 +360,7 @@ class WxHandler(TaskHandler):
 
         log = logging.getLogger("Noven.Weixin")
 
-        # print msg.fr+" "+str(type(msg))
-        # log.info("%s - %s", msg.fr, str(type(msg)))
-
         if isinstance(msg, NovenWx.BlahMessage):
-            if msg.content[1:] == u"成绩单":
-                self.render("menu-with-report.xml", to=msg, create_signature=create_signature)
-                return
             self.reply(u"收到！")
             return
 
