@@ -169,11 +169,11 @@ class User(object):
                 else i.contents[6].string
 
             course = Course(
-                subject = i.contents[2].string.strip(),
-                score   = score,
-                point   = i.contents[4].string,
-                grade   = i.contents[5].string,
-                term    = i.contents[1].string[1:12]
+                subject = unicode(i.contents[2].string.strip()),
+                score   = unicode(score),
+                point   = unicode(i.contents[4].string),
+                grade   = unicode(i.contents[5].string),
+                term    = unicode(i.contents[1].string[1:12])
             )
 
             key = course.term + course.subject

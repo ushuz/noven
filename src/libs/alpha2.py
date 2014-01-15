@@ -104,12 +104,12 @@ class User(object):
         self._session = requests.session()
 
         payload = {
-            "type": "Logon", "B1": u" 提　交 ".encode("gb2312"),
+            "type": "Logon", "B1": u" 提　交 ".encode("gbk"),
             "UserCode"      : self.usercode,
             "UserPassword"  : self.password
         }
         r = self._open(LOGIN_URL, data=payload)
-        t = r.content.decode("gb2312")
+        t = r.content.decode("gbk")
 
         # `requests.Session` can NOT be serialized properly in KVDB. We must
         # clean it up before save.
@@ -140,7 +140,7 @@ class User(object):
         """Save and return all-term GPA or current-term GPA respectly.
         """
         pattern = u"<p>在本查询时间段，你的学分积为(.+?)、必修课取"
-        m = re.search(pattern, r.content.decode("gb2312"))
+        m = re.search(pattern, r.content.decode("gbk"))
         if m:
             if all:
                 self.GPA = m.group(1)
@@ -154,6 +154,12 @@ class User(object):
     def _get_courses(self, r):
         """Save and return newly-released courses, save rank as well.
         """
+        # If user not regisered yet, then we can't fetch any data.
+        # Remember to logout before raise.
+        if u"你还没有学期注册，无法使用本模块！" in r.content.decode("gbk"):
+            self._logout()
+            raise Exception("User not registered.")
+
         # Import BeautifulSoup to deal with the data we got.
         from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(r.content)
@@ -169,9 +175,9 @@ class User(object):
         # Save the rank calculated by JWXT.
         # If failed, turn to default.  Most probably, the user is in his first term.
         try:
-            self.rank = l[-1].contents[1].contents[2].string[5:] \
+            self.rank = unicode(l[-1].contents[1].contents[2].string[5:]) \
                 if u"全学程" in l[-1].contents[1].contents[2].string \
-                else l[-1].contents[1].contents[3].string[5:]
+                else unicode(l[-1].contents[1].contents[3].string[5:])
         except Exception as e:
             log.error("%s - Can't get rank for the user.", self.usercode)
 
@@ -190,15 +196,15 @@ class User(object):
             # Normal cases.
             if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
                 # When [期末] is empty, we turn to [备注].
-                score = unicode(i.contents[3].contents[0].string) \
+                score = i.contents[3].contents[0].string \
                     if i.contents[3].contents[0].string \
                     else i.contents[9].contents[0].string
 
                 course = Course(
-                    subject = i.contents[1].string.replace(u' ', u''),
-                    score   = score,
-                    point   = i.contents[11].string,
-                    term    = i.contents[13].string + i.contents[15].string
+                    subject = unicode(i.contents[1].string.strip()),
+                    score   = unicode(score),
+                    point   = unicode(i.contents[11].string),
+                    term    = unicode(i.contents[13].string + i.contents[15].string)
                 )
 
                 key = course.term + course.subject
@@ -210,16 +216,16 @@ class User(object):
             # score will not be displayed.
             elif i.contents[3].get('colspan') == u'5':
                 course = Course(
-                    subject = i.contents[1].string.replace(u' ', u''),
+                    subject = unicode(i.contents[1].string.strip()),
                     score   = u'待评价',
                     point   = u'-',
-                    term    = i.contents[5].string + i.contents[7].string
+                    term    = unicode(i.contents[5].string + i.contents[7].string)
                 )
 
                 key = course.term + course.subject
                 if not self.courses.has_key(key):
                     new_courses[key] = course
-                    log.debug("%s - A new course: %s", self.usercode, key)
+                    log.debug("%s - Course: %s", self.usercode, key)
             else:
                 # If no course was created, we should simply continue in case
                 # of encountering NameError later.
@@ -235,7 +241,7 @@ class User(object):
     def _fetch_all(self):
         payload = {
             "order":"xn", "by":"DESC", "year":"0", "term":"0",
-            "keyword":"", "Submit1":u" 查 询 ".encode("gb2312")
+            "keyword":"", "Submit1":u" 查 询 ".encode("gbk")
             }
         return self._open(DATA_URL, data=payload)
 
@@ -247,12 +253,6 @@ class User(object):
         # Initializing data.
         # Get `courses` and `GPA`
         r = self._fetch_all()
-
-        # If user not regisered yet, then we can't fetch any data.
-        # Remember to ogout before raise.
-        if u"你还没有学期注册，无法使用本模块！" in r.content.decode("gb2312"):
-            self._logout()
-            raise Exception("User not registered.")
 
         self._get_courses(r)
         self._get_GPA(r, ALL_TERMS)
@@ -273,12 +273,6 @@ class User(object):
 
         # Get `new_courses`
         r = self._fetch_all()
-
-        # If user not regisered yet, then we can't fetch any data.
-        # Remember to ogout before raise.
-        if u"你还没有学期注册，无法使用本模块！" in r.content.decode("gb2312"):
-            self._logout()
-            raise Exception("User not registered.")
 
         new_courses = self._get_courses(r)
         self._get_GPA(r, ALL_TERMS)
