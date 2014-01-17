@@ -54,6 +54,9 @@ class Fetion(object):
         if u"验证" in tip:
             raise Critical("%s - Critical: Verification Required" % self.mobile)
 
+        if u"建议马上修改密码" in tip:
+            raise Critical("%s - Critical: Account Frozen" % self.mobile)
+
         if tip:
             raise ConnError("%s - ConnError: %s" % (self.mobile, tip))
 
