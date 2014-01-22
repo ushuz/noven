@@ -428,7 +428,8 @@ class WxHandler(TaskHandler):
     def reply(self, content):
         msg = self.msg
         if content == "guide":
-            self.render("guide.xml", to=msg, create_signature=create_signature)
+            # self.render("guide.xml", to=msg, create_signature=create_signature)
+            self.render("text.xml", to=msg, content="登记关闭，重启时间另行通知。")
         elif content == "menu":
             self.render("menu-with-report.xml", to=msg, create_signature=create_signature)
         else:
