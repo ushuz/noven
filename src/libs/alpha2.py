@@ -196,23 +196,31 @@ class User(object):
             # Normal cases.
             if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
                 # When [期末] is empty, we turn to [备注].
-                score = i.contents[3].contents[0].string \
+                _score = i.contents[3].contents[0].string \
                     if i.contents[3].contents[0].string \
                     else i.contents[9].contents[0].string
 
                 course = Course(
                     subject = unicode(i.contents[1].string.strip()),
-                    score   = unicode(score),
+                    score   = unicode(_score),
                     point   = unicode(i.contents[11].string),
                     term    = unicode(i.contents[13].string + i.contents[15].string)
                 )
 
-                key = course.term + course.subject
-                if course not in courses:
+                # In some cases the user may retake and study a same-name-course in a
+                # term, e.g. user:120824114 - [大学英语].  There will be 2 courses and
+                # they have same name and term and can not be saved at the same time.
+                # So, if [选课类型] is [重修], we append a flag to the key.
+                _type = unicode(i.contents[19].contents[0].string) \
+                    if i.contents[19].contents else u""
+
+                key = course.term + course.subject + _type
+                if course not in courses or not self.courses.has_key(key):
                     new_courses[key] = course
                     log.debug("%s - Course: %s", self.usercode, key)
+
             # Special cases.
-            # If the course is released before Rating System being closed,
+            # If the course is released before Rating System been closed,
             # score will not be displayed.
             elif i.contents[3].get('colspan') == u'5':
                 course = Course(
@@ -226,6 +234,7 @@ class User(object):
                 if not self.courses.has_key(key):
                     new_courses[key] = course
                     log.debug("%s - Course: %s", self.usercode, key)
+
             else:
                 # If no course was created, we should simply continue in case
                 # of encountering NameError later.
