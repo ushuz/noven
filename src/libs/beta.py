@@ -168,11 +168,13 @@ class User(object):
             score = i.contents[3].string if i.contents[6].string == u"&nbsp;" \
                 else i.contents[6].string
 
+            grade = u"-" if i.contents[5].string == u"&nbsp;" else i.contents[5].string
+
             course = Course(
                 subject = unicode(i.contents[2].string.strip()),
                 score   = unicode(score),
                 point   = unicode(i.contents[4].string),
-                grade   = unicode(i.contents[5].string),
+                grade   = unicode(grade),
                 term    = unicode(i.contents[1].string[1:12])
             )
 
@@ -189,6 +191,8 @@ class User(object):
         t = 0.0
         m = 0.0
         for v in self.courses.values():
+            if v.grade == u"-":
+                continue
             m += float(v.point)*float(v.grade)
             t += float(v.point)
         self.GPA = u"%.2f" % (m / t)
