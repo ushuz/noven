@@ -66,15 +66,21 @@ if "SERVER_SOFTWARE" not in os.environ:
     logging.basicConfig(format="%(asctime)s.%(msecs)0.3d - %(levelname)s [%(name)s] %(message)s", level=logging.DEBUG, datefmt="%H:%M:%S")
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
-    # API for test
-    # Handler for temporarily use
-    handlers.append((r"/backend/something", api.Temp))
+    # API under testing
     # Future users api, returning json.
-    handlers.append((r"/users/([0-9]{9,10}).json", api.UserById))
+    handlers.append((r"/api/users", api.Users))
+    handlers.append((r"/api/users/([0-9]{9,10})", api.UserById))
+
+    # Utilities for test
+    import util
+    # Handler for temporarily use
+    handlers.append((r"/util/something", util.Temp))
+    # Interface for KVDB
+    handlers.append((r"/util/kv", util.KVDB))
     # Generate signatures used for testing
-    handlers.append((r"/api/cs", api.CreateSignature))
+    handlers.append((r"/util/kg", util.KeyGen))
     # Render the given template
-    handlers.append((r"/(.+?).html", api.UIDebugHandler))
+    handlers.append((r"/(.+?).html", util.UIDebug))
 
 # Global logging settings
 logging.basicConfig(format="%(levelname)s [%(name)s] %(message)s", level=logging.INFO)
