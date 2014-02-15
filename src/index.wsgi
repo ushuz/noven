@@ -48,6 +48,7 @@ httplib.responses.update({
     423: "Not Supported",
     424: "Duplicate Sign Up",
     425: "Activation Failed",
+    426: "Blocked",
     444: "Unknown",
 })
 

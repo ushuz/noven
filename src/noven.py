@@ -82,6 +82,9 @@ class BaseHandler(tornado.web.RequestHandler):
             # 425 for activation
             425: "验证码有误。",
 
+            # 426 for blocked
+            426: "你已被 Noven 屏蔽，请勿再次尝试。"
+
             # 444 for unknown
         }
 
@@ -184,6 +187,12 @@ class HomeHandler(SignUpHandler):
         if uc and uc != ucode:
             self.log.error("%s - Duplicate.", ucode)
             raise tornado.web.HTTPError(424)
+
+        # Check blocked user
+        block = self.kv.get(utf8("block:"+ucode))
+        if block:
+            self.log.error("%s - Blocked: %s", ucode, _unicode(block))
+            raise tornado.web.HTTPError(426)
 
         try:
             # 9 digits for BJFU
@@ -407,12 +416,15 @@ class WxHandler(TaskHandler):
             return
 
         # Un-Subscribe event.
-        # Deactivate users when they un-subscribe to save unnecessary update.
-        # In case of users' returning back, we don't delete data.
+        # Block users when they un-subscribe.
         if isinstance(msg, NovenWx.ByeMessage):
-            u.verified = False
-            self.kv.set(uc, u)
-            log.info("%s - De-Activated: Un-Subscribe.", uc)
+            self.kv.delete(utf8(u.wx_id))
+            self.kv.delete(utf8(u.usercode))
+
+            s = "|".join([time.strftime("%Y%m%d"), u"取消关注"])
+            self.kv.set(utf8("block:"+u.usercode), s)
+
+            log.info("%s - Blocked: Un-Subscribe.", uc)
             return
         else:
             # Handle unknown message here.
