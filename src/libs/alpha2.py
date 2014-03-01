@@ -193,6 +193,14 @@ class User(object):
             if len(i.contents) < 4:
                 log.debug("%s - Too few `i.contents`.", self.usercode)
                 continue
+
+            # In some cases the user may retake and study a same-name-course in a
+            # term, e.g. user:120824114 - [大学英语].  There will be 2 courses and
+            # they have same name and term and can not be saved at the same time.
+            # So, if [选课类型] is [重修], we append a flag to the key.
+            _type = unicode(i.contents[19].contents[0].string) \
+                if i.contents[19].contents else u""
+
             # Normal cases.
             if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
                 # When [期末] is empty, we turn to [备注].
@@ -206,13 +214,6 @@ class User(object):
                     point   = unicode(i.contents[11].string),
                     term    = unicode(i.contents[13].string + i.contents[15].string)
                 )
-
-                # In some cases the user may retake and study a same-name-course in a
-                # term, e.g. user:120824114 - [大学英语].  There will be 2 courses and
-                # they have same name and term and can not be saved at the same time.
-                # So, if [选课类型] is [重修], we append a flag to the key.
-                _type = unicode(i.contents[19].contents[0].string) \
-                    if i.contents[19].contents else u""
 
                 key = course.term + course.subject + _type
                 if course not in courses or not self.courses.has_key(key):
@@ -230,7 +231,7 @@ class User(object):
                     term    = unicode(i.contents[5].string + i.contents[7].string)
                 )
 
-                key = course.term + course.subject
+                key = course.term + course.subject + _type
                 if not self.courses.has_key(key):
                     new_courses[key] = course
                     log.debug("%s - Course: %s", self.usercode, key)
