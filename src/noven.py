@@ -416,15 +416,15 @@ class WxHandler(TaskHandler):
             return
 
         # Un-Subscribe event.
-        # Block users when they un-subscribe.
+        # Delete users when they un-subscribe.  If needed, block them manually.
         if isinstance(msg, NovenWx.ByeMessage):
             self.kv.delete(utf8(u.wx_id))
             self.kv.delete(utf8(u.usercode))
 
-            s = "|".join([time.strftime("%Y%m%d"), u"取消关注"])
-            self.kv.set(utf8("block:"+u.usercode), s)
+            # s = "|".join([time.strftime("%Y%m%d"), u"取消关注"])
+            # self.kv.set(utf8("block:"+u.usercode), s)
 
-            log.info("%s - Blocked: Un-Subscribe.", uc)
+            log.info("%s - Deleted: Un-Subscribe.", uc)
             return
         else:
             # Handle unknown message here.
@@ -506,10 +506,10 @@ class UpdateById(TaskHandler):
             new_courses = u.update()
         except (alpha.AuthError, beta.AuthError) as e:
             log.error("%s - %s", id, e)
-            # User changed their password for sure. Deactivate them.
-            u.verified = False
-            self.kv.set(utf8(u.usercode), u)
-            log.info("%s - De-Activated: User changed password.", id)
+            # User changed their password for sure. Delete them.
+            if u.wx_id: self.kv.delete(utf8(u.wx_id))
+            self.kv.delete(utf8(u.usercode))
+            log.info("%s - Deleted: User changed password.", id)
             return
         except Exception as e:
             log.error("%s - %s", id, e)
@@ -570,10 +570,10 @@ class SMSById(TaskHandler):
                 fetion.logout()
             except NovenFetion.AuthError as e:
                 log.error("%s - %s", id, e)
-                # Users had changed Fetion password.  Deactivate them.
-                u.verified = False
-                self.kv.set(utf8(id), u)
-                log.info("%s - De-Activated: User changed Fetion password.", id)
+                # Users had changed Fetion password.  Delete them.
+                if u.wx_id: self.kv.delete(utf8(u.wx_id))
+                self.kv.delete(utf8(u.usercode))
+                log.info("%s - Deleted: User changed Fetion password.", id)
                 return
             except NovenFetion.Critical as e:
                 log.critical("%s - %s", id, e)
