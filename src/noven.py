@@ -362,7 +362,6 @@ class WxHandler(TaskHandler):
         if s:
             self.write(utf8(s))
             return
-        self.render("weixin.html")
 
     def post(self):
         msg = self.msg = NovenWx.parse(self.request.body)
