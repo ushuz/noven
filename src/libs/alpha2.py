@@ -113,10 +113,10 @@ class User(object):
 
         # `requests.Session` can NOT be serialized properly in KVDB. We must
         # clean it up before save.
-        if u"密码不正确,请重新输入！" in t:
+        if u"密码不正确" in t:
             self._logout()
             raise AuthError("Wrong password.")
-        if u"用户不存在！" in t:
+        if u"用户不存在" in t:
             self._logout()
             raise AuthError("Wrong usercode.")
 
@@ -156,7 +156,7 @@ class User(object):
         """
         # If user not regisered yet, then we can't fetch any data.
         # Remember to logout before raise.
-        if u"你还没有学期注册，无法使用本模块！" in r.content.decode("gbk"):
+        if u"你还没有学期注册" in r.content.decode("gbk"):
             self._logout()
             raise Exception("User not registered.")
 
