@@ -168,9 +168,10 @@ class User(object):
         if not l:
             # IndexError sometimes occurs when saving rank.  It appears that
             # malformed response we received is to blame, i.e. `r.content` is
-            # not completed.
-            log.error("%s - Something wrong with the returning data.", self.usercode)
-            return {}
+            # not completed.  We should raise here to exit as try...except
+            # is set in higher level.
+            log.debug("%s - Something wrong with the returned data.", self.usercode)
+            raise Exception("Data corrupted.")
 
         # Save the rank calculated by JWXT.
         # If failed, turn to default.  Most probably, the user is in his first term.
@@ -179,7 +180,7 @@ class User(object):
                 if u"全学程" in l[-1].contents[1].contents[2].string \
                 else unicode(l[-1].contents[1].contents[3].string[5:])
         except Exception as e:
-            log.error("%s - Can't get rank for the user.", self.usercode)
+            log.debug("%s - Can't get rank for the user.", self.usercode)
 
         log.debug("%s - Rank saved: %s", self.usercode, self.rank)
 
