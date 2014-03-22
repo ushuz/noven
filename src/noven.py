@@ -70,8 +70,8 @@ class BaseHandler(tornado.web.RequestHandler):
             421: "学号或教务系统密码有误。",
 
             # 422 for wrong mobile or password
-            422: "手机号码或飞信密码有误。<br />" \
-                "若忘记飞信密码，请编辑新密码发送至12520050。",
+            422: "手机号码或飞信密码有误。<br />"
+                 "若忘记飞信密码，请编辑新密码发送至12520050。",
 
             # 423 for non-CMCC mobile
             423: "仅支持中国移动号码。",
@@ -223,7 +223,7 @@ class HomeHandler(SignUpHandler):
             n = utf8(new_user.mobileno)
             p = utf8(new_user.mobilepass)
             c = utf8(TPL_VCODE % (new_user.name,
-                    hashlib.sha1(self._new_cookie["uc"].value).hexdigest()[:6]))
+                     hashlib.sha1(self._new_cookie["uc"].value).hexdigest()[:6]))
 
             fetion = NovenFetion.Fetion(n, p)
             while True:
@@ -304,8 +304,8 @@ class WelcomeHandler(SignUpHandler):
                     wellinfo
                 )
 
-            self.log.info("%s - Name: %s Courses: %d",
-                u.usercode, u.name, len(u.courses))
+            self.log.info("%s - Name: %s Courses: %d", u.usercode,
+                u.name, len(u.courses))
         else:
             self.log.critical("In-Active users accessing welcome page.")
             raise tornado.web.HTTPError(444)
@@ -345,7 +345,6 @@ class ReportHandler(BaseHandler):
         if not u:
             log.critical("%s - Failed to retrieve user.", uc)
             raise tornado.web.HTTPError(444)
-
 
         u.terms = sorted(list(set([c.term for c in u.courses.values()])), reverse=True)
         self.render("report.html", u=u)

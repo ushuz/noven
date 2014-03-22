@@ -113,22 +113,22 @@ class User(object):
 
     def _fetch(self):
         payload = {
-            "__VIEWSTATE": "dDwyMTQ0OTczMjA5O3Q8O2w8aTwxPjs+O2w8dDw7bDxpPDI+O" \
-                "2k8NT47aTwyMT47aTwyMz47aTwzNz47aTwzOT47aTw0MT47aTw0Mz47PjtsP" \
-                "HQ8dDw7dDxpPDE0PjtAPFxlOzIwMDEtMjAwMjsyMDAyLTIwMDM7MjAwMy0yM" \
-                "DA0OzIwMDQtMjAwNTsyMDA1LTIwMDY7MjAwNi0yMDA3OzIwMDctMjAwODsyM" \
-                "DA4LTIwMDk7MjAwOS0yMDEwOzIwMTAtMjAxMTsyMDExLTIwMTI7MjAxMi0yM" \
-                "DEzOzIwMTMtMjAxNDs+O0A8XGU7MjAwMS0yMDAyOzIwMDItMjAwMzsyMDAzL" \
-                "TIwMDQ7MjAwNC0yMDA1OzIwMDUtMjAwNjsyMDA2LTIwMDc7MjAwNy0yMDA4O" \
-                "zIwMDgtMjAwOTsyMDA5LTIwMTA7MjAxMC0yMDExOzIwMTEtMjAxMjsyMDEyL" \
-                "TIwMTM7MjAxMy0yMDE0Oz4+Oz47Oz47dDx0PHA8cDxsPERhdGFUZXh0Rmllb" \
-                "GQ7RGF0YVZhbHVlRmllbGQ7PjtsPHh4cTt4cTE7Pj47Pjt0PGk8Nz47QDxcZ" \
-                "Tvnp4s75YasO+efrTvmmKU75aSPO+efrTs+O0A8XGU7MXznp4s7MXzlhqw7M" \
-                "Xznn607MnzmmKU7MnzlpI87Mnznn607Pj47Pjs7Pjt0PHA8O3A8bDxvbmNsa" \
-                "WNrOz47bDx3aW5kb3cucHJpbnQoKVw7Oz4+Pjs7Pjt0PHA8O3A8bDxvbmNsa" \
-                "WNrOz47bDx3aW5kb3cuY2xvc2UoKVw7Oz4+Pjs7Pjt0PEAwPDs7Ozs7Ozs7O" \
-                "zs+Ozs+O3Q8QDA8Ozs7Ozs7Ozs7Oz47Oz47dDxAMDw7Ozs7Ozs7Ozs7Pjs7P" \
-                "jt0PHA8cDxsPFRleHQ7PjtsPFpKRFg7Pj47Pjs7Pjs+Pjs+Pjs+y0ElZ9Hn+" \
+            "__VIEWSTATE": "dDwyMTQ0OTczMjA5O3Q8O2w8aTwxPjs+O2w8dDw7bDxpPDI+O"
+                "2k8NT47aTwyMT47aTwyMz47aTwzNz47aTwzOT47aTw0MT47aTw0Mz47PjtsP"
+                "HQ8dDw7dDxpPDE0PjtAPFxlOzIwMDEtMjAwMjsyMDAyLTIwMDM7MjAwMy0yM"
+                "DA0OzIwMDQtMjAwNTsyMDA1LTIwMDY7MjAwNi0yMDA3OzIwMDctMjAwODsyM"
+                "DA4LTIwMDk7MjAwOS0yMDEwOzIwMTAtMjAxMTsyMDExLTIwMTI7MjAxMi0yM"
+                "DEzOzIwMTMtMjAxNDs+O0A8XGU7MjAwMS0yMDAyOzIwMDItMjAwMzsyMDAzL"
+                "TIwMDQ7MjAwNC0yMDA1OzIwMDUtMjAwNjsyMDA2LTIwMDc7MjAwNy0yMDA4O"
+                "zIwMDgtMjAwOTsyMDA5LTIwMTA7MjAxMC0yMDExOzIwMTEtMjAxMjsyMDEyL"
+                "TIwMTM7MjAxMy0yMDE0Oz4+Oz47Oz47dDx0PHA8cDxsPERhdGFUZXh0Rmllb"
+                "GQ7RGF0YVZhbHVlRmllbGQ7PjtsPHh4cTt4cTE7Pj47Pjt0PGk8Nz47QDxcZ"
+                "Tvnp4s75YasO+efrTvmmKU75aSPO+efrTs+O0A8XGU7MXznp4s7MXzlhqw7M"
+                "Xznn607MnzmmKU7MnzlpI87Mnznn607Pj47Pjs7Pjt0PHA8O3A8bDxvbmNsa"
+                "WNrOz47bDx3aW5kb3cucHJpbnQoKVw7Oz4+Pjs7Pjt0PHA8O3A8bDxvbmNsa"
+                "WNrOz47bDx3aW5kb3cuY2xvc2UoKVw7Oz4+Pjs7Pjt0PEAwPDs7Ozs7Ozs7O"
+                "zs+Ozs+O3Q8QDA8Ozs7Ozs7Ozs7Oz47Oz47dDxAMDw7Ozs7Ozs7Ozs7Pjs7P"
+                "jt0PHA8cDxsPFRleHQ7PjtsPFpKRFg7Pj47Pjs7Pjs+Pjs+Pjs+y0ElZ9Hn+"
                 "SlXToKugoUwAneDL5w=",
             "ddlXN": "",
             "ddlXQ": "",
@@ -171,11 +171,11 @@ class User(object):
             grade = u"-" if i.contents[5].string == u"&nbsp;" else i.contents[5].string
 
             course = Course(
-                subject = unicode(i.contents[2].string.strip()),
-                score   = unicode(score),
-                point   = unicode(i.contents[4].string),
-                grade   = unicode(grade),
-                term    = unicode(i.contents[1].string[1:12])
+                subject=unicode(i.contents[2].string.strip()),
+                score=unicode(score),
+                point=unicode(i.contents[4].string),
+                grade=unicode(grade),
+                term=unicode(i.contents[1].string[1:12])
             )
 
             key = course.term + course.subject
@@ -207,8 +207,8 @@ class User(object):
         self._get_courses(data)
         self._get_GPA()
 
-        log.debug("%s - %s has %d courses in total.",
-            self.usercode, self.name, len(self.courses))
+        log.debug("%s - %s has %d courses in total.", self.usercode,
+            self.name, len(self.courses))
 
         self._logout()
 
@@ -223,8 +223,8 @@ class User(object):
         new_courses = self._get_courses(data)
         if new_courses:
             self._get_GPA()
-            log.debug("%s - %s has %d new courses.",
-                self.usercode, self.name, len(new_courses))
+            log.debug("%s - %s has %d new courses.", self.usercode,
+                self.name, len(new_courses))
 
         self._logout()
 

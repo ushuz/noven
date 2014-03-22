@@ -105,8 +105,8 @@ class User(object):
 
         payload = {
             "type": "Logon", "B1": u" 提　交 ".encode("gbk"),
-            "UserCode"      : self.usercode,
-            "UserPassword"  : self.password
+            "UserCode": self.usercode,
+            "UserPassword": self.password
         }
         r = self._open(LOGIN_URL, data=payload)
         t = r.content.decode("gbk")
@@ -203,10 +203,10 @@ class User(object):
                     else i.contents[9].contents[0].string
 
                 course = Course(
-                    subject = unicode(i.contents[1].string.strip()),
-                    score   = unicode(_score),
-                    point   = unicode(i.contents[11].string),
-                    term    = unicode(i.contents[13].string + i.contents[15].string)
+                    subject=unicode(i.contents[1].string.strip()),
+                    score=unicode(_score),
+                    point=unicode(i.contents[11].string),
+                    term=unicode(i.contents[13].string + i.contents[15].string)
                 )
 
                 # In some cases the user may retake and study a same-name-course in a
@@ -217,7 +217,7 @@ class User(object):
                     if i.contents[19].contents else u""
 
                 key = course.term + course.subject + _type
-                if course not in courses or not self.courses.has_key(key):
+                if course not in courses or key not in self.courses:
                     new_courses[key] = course
                     log.debug("%s - Course: %s", self.usercode, key)
 
@@ -226,10 +226,10 @@ class User(object):
             # score will not be displayed.
             elif i.contents[3].get('colspan') == u'5':
                 course = Course(
-                    subject = unicode(i.contents[1].string.strip()),
-                    score   = u'待评价',
-                    point   = u'-',
-                    term    = unicode(i.contents[5].string + i.contents[7].string)
+                    subject=unicode(i.contents[1].string.strip()),
+                    score=u'待评价',
+                    point=u'-',
+                    term=unicode(i.contents[5].string + i.contents[7].string)
                 )
 
                 # In some cases the user may retake and study a same-name-course in a
@@ -240,7 +240,7 @@ class User(object):
                     if i.contents[11].contents else u""
 
                 key = course.term + course.subject + _type
-                if not self.courses.has_key(key):
+                if key not in self.courses:
                     new_courses[key] = course
                     log.debug("%s - Course: %s", self.usercode, key)
 
@@ -258,9 +258,9 @@ class User(object):
 
     def _fetch_all(self):
         payload = {
-            "order":"xn", "by":"DESC", "year":"0", "term":"0",
-            "keyword":"", "Submit1":u" 查 询 ".encode("gbk")
-            }
+            "order": "xn", "by": "DESC", "year": "0", "term": "0",
+            "keyword": "", "Submit1": u" 查 询 ".encode("gbk")
+        }
         return self._open(DATA_URL, data=payload)
 
     def init(self):
@@ -279,8 +279,8 @@ class User(object):
         r = self._fetch_now()
         self._get_GPA(r)
 
-        log.debug("%s - %s has %d courses in total.",
-            self.usercode, self.name, len(self.courses))
+        log.debug("%s - %s has %d courses in total.", self.usercode,
+            self.name, len(self.courses))
 
         self._logout()
 
@@ -300,8 +300,8 @@ class User(object):
             r = self._fetch_now()
             self._get_GPA(r)
 
-            log.debug("%s - %s has %d new courses.",
-                self.usercode, self.name, len(new_courses))
+            log.debug("%s - %s has %d new courses.", self.usercode,
+                self.name, len(new_courses))
 
         self._logout()
         return new_courses
