@@ -1,16 +1,23 @@
 # -*- coding:utf-8 -*-
 
+'''NovenFetion, based on 3G Fetion, is simple and easy to use by providing
+simple and clear APIs.  Also, it's easy to be extended.
+
+Due to Fetion's mandatory verification during login procedure starting mid-
+March, NovenFetion is going to be deprecated and replaced.
+'''
+
 import requests
 
 HOST = "http://f.10086.cn"
 
 
 class AuthError(Exception):
-    '''Wrong mobileno or password, or not logged in.'''
+    '''Wrong mobile or password, or not logged in.'''
 
 
 class ConnError(Exception):
-    '''Failed to connect to fetion servers.'''
+    '''Failed to connect to Fetion servers.'''
 
 
 class Critical(Exception):
