@@ -545,18 +545,18 @@ class SMSById(TaskHandler):
             # Can't get user from KVDB.
             log.error("%s - User not exists.", id)
             return
-        # if not u.verified:
-            # User is not verified.
-            # log.error("%s - SMS Failed: User not activated.", id)
-            # return
 
         n = utf8(u.mobileno)  # Mobile number
         p = utf8(u.mobilepass)  # Fetion password
         c = base64.b64decode(self.request.body) + "[Noven]"  # SMS content
 
-        # There are chances only mobile was saved.
+        # There are chances only mobile was saved. Delete the mobile and
+        # fetion password to correct this.
         if not n or not p:
-            log.error("%s - Mobile or password missing.", id)
+            u.mobileno = None
+            u.mobilepass = None
+            self.kv.set(utf8(id), u)
+            log.error("%s - Updated: Mobile or password missing.", id)
             return
 
         fetion = NovenFetion.Fetion(n, p)
@@ -567,10 +567,12 @@ class SMSById(TaskHandler):
                 fetion.logout()
             except NovenFetion.AuthError as e:
                 log.error("%s - %s", id, e)
-                # Users had changed Fetion password.  Delete them.
-                if u.wx_id: self.kv.delete(utf8(u.wx_id))
-                self.kv.delete(utf8(u.usercode))
-                log.info("%s - Deleted: User changed Fetion password.", id)
+                # Users had changed Fetion password.  Delete their mobile and
+                # fetion password.
+                u.mobileno = None
+                u.mobilepass = None
+                self.kv.set(utf8(id), u)
+                log.info("%s - Updated: User changed Fetion password.", id)
                 return
             except NovenFetion.Critical as e:
                 log.critical("%s - %s", id, e)
