@@ -414,13 +414,13 @@ class WxHandler(TaskHandler):
             return
 
         # Un-Subscribe event.
-        # Delete users when they un-subscribe.  If needed, block them manually.
+        # Delete users when they un-subscribe.  Block them manually if needed.
         if isinstance(msg, NovenWx.ByeMessage):
             self.kv.delete(utf8(u.wx_id))
             self.kv.delete(utf8(u.usercode))
 
-            # s = "|".join([time.strftime("%Y%m%d"), u"取消关注"])
-            # self.kv.set(utf8("block:"+u.usercode), s)
+            # s = "|".join([time.strftime("%Y%m%d"), u"Un-Subscribe"])
+            # self.kv.set(utf8("block:"+u.wx_id), s)
 
             log.info("%s - Deleted: Un-Subscribe.", uc)
             return
@@ -488,11 +488,11 @@ class UpdateById(TaskHandler):
         if not u:
             # Can't get user from KVDB.
             log.error("%s - User not exists.", id)
-            return
+            raise tornado.web.HTTPError(404)
         if not u.verified:
             # User is not activated.
             # log.error("%s - User not activated.", id)
-            return
+            raise tornado.web.HTTPError(425)
 
         # Debug settings
         if "SERVER_SOFTWARE" not in os.environ:
@@ -507,10 +507,10 @@ class UpdateById(TaskHandler):
             if u.wx_id: self.kv.delete(utf8(u.wx_id))
             self.kv.delete(utf8(u.usercode))
             log.info("%s - Deleted: User changed password.", id)
-            return
+            raise tornado.web.HTTPError(421)
         except Exception as e:
             log.error("%s - %s", id, e)
-            return
+            raise tornado.web.HTTPError(500)
 
         if new_courses:
             log.info("%s - %s has %s updates. GPA %s.", id, u.name, len(new_courses), u.GPA)
@@ -544,7 +544,7 @@ class SMSById(TaskHandler):
         if not u:
             # Can't get user from KVDB.
             log.error("%s - User not exists.", id)
-            return
+            raise tornado.web.HTTPError(404)
 
         n = utf8(u.mobileno)  # Mobile number
         p = utf8(u.mobilepass)  # Fetion password
@@ -557,7 +557,7 @@ class SMSById(TaskHandler):
             u.mobilepass = None
             self.kv.set(utf8(id), u)
             log.error("%s - Updated: Mobile or password missing.", id)
-            return
+            raise tornado.web.HTTPError(422)
 
         fetion = NovenFetion.Fetion(n, p)
         while True:
@@ -573,10 +573,10 @@ class SMSById(TaskHandler):
                 u.mobilepass = None
                 self.kv.set(utf8(id), u)
                 log.info("%s - Updated: User changed Fetion password.", id)
-                return
+                raise tornado.web.HTTPError(422)
             except NovenFetion.Critical as e:
                 log.critical("%s - %s", id, e)
-                return
+                raise tornado.web.HTTPError(444)
             except Exception:
                 continue
             break
