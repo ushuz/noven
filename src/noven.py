@@ -188,10 +188,10 @@ class HomeHandler(SignUpHandler):
             self.log.error("%s - Duplicate.", ucode)
             raise tornado.web.HTTPError(424)
 
-        # Check blocked user
-        block = self.kv.get(utf8("block:"+ucode))
-        if block:
-            self.log.error("%s - Blocked: %s", ucode, _unicode(block))
+        # Check blocked user and weixin
+        b = self.kv.get(utf8("block:"+ucode)) or self.kv.get(utf8("block:"+t))
+        if b:
+            self.log.error("%s - Blocked: %s", ucode, _unicode(b))
             raise tornado.web.HTTPError(426)
 
         try:
@@ -405,12 +405,9 @@ class WxHandler(TaskHandler):
             return
 
         # Subscribe event from an exist user.
-        # Activate the user and welcome back.
+        # It's not gonna happen for now.
         if isinstance(msg, NovenWx.HelloMessage):
-            u.verified = True
-            self.kv.set(uc, u)
-            log.info("%s - Activated.", uc)
-            self.reply(u"Hello，%s！欢迎回来！" % u.name)
+            log.critical("%s - How could this happen?", uc)
             return
 
         # Un-Subscribe event.
@@ -419,8 +416,8 @@ class WxHandler(TaskHandler):
             self.kv.delete(utf8(u.wx_id))
             self.kv.delete(utf8(u.usercode))
 
-            # s = "|".join([time.strftime("%Y%m%d"), u"Un-Subscribe"])
-            # self.kv.set(utf8("block:"+u.wx_id), s)
+            # s = "|".join([time.strftime("%Y%m%d"), "WX:"+u.wx_id, "Un-Subscribe"])
+            # self.kv.set(utf8("block:"+u.wx_id), _unicode(s))
 
             log.info("%s - Deleted: Un-Subscribe.", uc)
             return
