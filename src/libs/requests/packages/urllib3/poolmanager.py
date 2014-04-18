@@ -1,5 +1,5 @@
 # urllib3/poolmanager.py
-# Copyright 2008-2012 Andrey Petrov and contributors (see CONTRIBUTORS.txt)
+# Copyright 2008-2013 Andrey Petrov and contributors (see CONTRIBUTORS.txt)
 #
 # This module is part of urllib3 and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -22,6 +22,9 @@ pool_classes_by_scheme = {
 }
 
 log = logging.getLogger(__name__)
+
+SSL_KEYWORDS = ('key_file', 'cert_file', 'cert_reqs', 'ca_certs',
+                'ssl_version')
 
 
 class PoolManager(RequestMethods):
@@ -58,6 +61,23 @@ class PoolManager(RequestMethods):
         self.pools = RecentlyUsedContainer(num_pools,
                                            dispose_func=lambda p: p.close())
 
+    def _new_pool(self, scheme, host, port):
+        """
+        Create a new :class:`ConnectionPool` based on host, port and scheme.
+
+        This method is used to actually create the connection pools handed out
+        by :meth:`connection_from_url` and companion methods. It is intended
+        to be overridden for customization.
+        """
+        pool_cls = pool_classes_by_scheme[scheme]
+        kwargs = self.connection_pool_kw
+        if scheme == 'http':
+            kwargs = self.connection_pool_kw.copy()
+            for kw in SSL_KEYWORDS:
+                kwargs.pop(kw, None)
+
+        return pool_cls(host, port, **kwargs)
+
     def clear(self):
         """
         Empty our store of pools and direct them all to close.
@@ -74,6 +94,7 @@ class PoolManager(RequestMethods):
         If ``port`` isn't given, it will be derived from the ``scheme`` using
         ``urllib3.connectionpool.port_by_scheme``.
         """
+        scheme = scheme or 'http'
         port = port or port_by_scheme.get(scheme, 80)
 
         pool_key = (scheme, host, port)
@@ -85,11 +106,8 @@ class PoolManager(RequestMethods):
             return pool
 
         # Make a fresh ConnectionPool of the desired type
-        pool_cls = pool_classes_by_scheme[scheme]
-        pool = pool_cls(host, port, **self.connection_pool_kw)
-
+        pool = self._new_pool(scheme, host, port)
         self.pools[pool_key] = pool
-
         return pool
 
     def connection_from_url(self, url):
@@ -132,20 +150,31 @@ class PoolManager(RequestMethods):
 
         log.info("Redirecting %s -> %s" % (url, redirect_location))
         kw['retries'] = kw.get('retries', 3) - 1  # Persist retries countdown
+        kw['redirect'] = redirect
         return self.urlopen(method, redirect_location, **kw)
 
 
 class ProxyManager(RequestMethods):
     """
     Given a ConnectionPool to a proxy, the ProxyManager's ``urlopen`` method
-    will make requests to any url through the defined proxy.
+    will make requests to any url through the defined proxy. The ProxyManager
+    class will automatically set the 'Host' header if it is not provided.
     """
 
     def __init__(self, proxy_pool):
         self.proxy_pool = proxy_pool
 
-    def _set_proxy_headers(self, headers=None):
+    def _set_proxy_headers(self, url, headers=None):
+        """
+        Sets headers needed by proxies: specifically, the Accept and Host
+        headers. Only sets headers not provided by the user.
+        """
         headers_ = {'Accept': '*/*'}
+
+        host = parse_url(url).host
+        if host:
+            headers_['Host'] = host
+
         if headers:
             headers_.update(headers)
 
@@ -154,7 +183,7 @@ class ProxyManager(RequestMethods):
     def urlopen(self, method, url, **kw):
         "Same as HTTP(S)ConnectionPool.urlopen, ``url`` must be absolute."
         kw['assert_same_host'] = False
-        kw['headers'] = self._set_proxy_headers(kw.get('headers'))
+        kw['headers'] = self._set_proxy_headers(url, headers=kw.get('headers'))
         return self.proxy_pool.urlopen(method, url, **kw)
 
 
