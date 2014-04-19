@@ -175,7 +175,7 @@ pip-log.txt
 #############
 
 # Bundled source
-src.zip
+src*.zip
 
 # Test DB
 kv.db

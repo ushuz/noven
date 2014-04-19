@@ -301,7 +301,7 @@ class Fetion(SIPC):
         }
         r = requests.get(SSI_URL, params=params)
 
-        log.debug("<---(http recv)\n%s\n<---", content.decode("utf-8"))
+        log.debug("<---(http recv)\n%s\n<---", r.content.decode("utf-8"))
 
         # Check status code
         # When 405 is met, we perform retries at higher level.
