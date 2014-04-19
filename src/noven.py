@@ -374,20 +374,17 @@ class WxHandler(TaskHandler):
             return
 
         # Check user's existence so we WON'T need to check it in every logic.
-        # If user doesn't exist, reply the guide.
         uc = self.kv.get(utf8(msg.fr))
         if not uc:
-            self.reply("guide")
+            self.reply("bonjour")
             return
 
-        u = self.kv.get(uc)
+        u = self.current_user = self.kv.get(uc)
         if not u:
-            self.reply("guide")
+            self.reply("bonjour")
             return
 
-        # Score query logic.
-        # Score query supposes to be the most frequent action when noven goes
-        # online.  Score query logic goes first in order to save IF computes.
+        # Score query
         if isinstance(msg, NovenWx.QueryMessage):
             if u.wx_push:
                 # TPL_NEW_COURSES
@@ -400,16 +397,9 @@ class WxHandler(TaskHandler):
                 self.reply(create_message(u.TPL_NO_UPDATE, u=u))
                 return
 
-        # Menu
-        # User is requesting menu.
-        if isinstance(msg, NovenWx.MenuMessage):
-            self.reply("menu")
-            return
-
-        # Subscribe event from an exist user.
-        # It's not gonna happen for now.
-        if isinstance(msg, NovenWx.HelloMessage):
-            log.critical("%s - How could this happen?", uc)
+        # Report request
+        if isinstance(msg, NovenWx.ReportMessage):
+            self.reply("report")
             return
 
         # Un-Subscribe event.
@@ -436,10 +426,10 @@ class WxHandler(TaskHandler):
 
     def reply(self, content):
         msg = self.msg
-        if content == "guide":
-            self.render("guide.xml", to=msg, create_signature=create_signature)
-        elif content == "menu":
-            self.render("menu-with-report.xml", to=msg, create_signature=create_signature)
+        if content == "bonjour":
+            self.render("bonjour.xml", to=msg, create_signature=create_signature)
+        elif content == "report":
+            self.render("report.xml", to=msg, create_signature=create_signature)
         else:
             self.render("text.xml", to=msg, content=content)
 

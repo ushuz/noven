@@ -10,47 +10,43 @@ def parse(xmlstring):
     try:
         et = ET.fromstring(xmlstring)
 
-        to = et.find("ToUserName").text.decode("utf-8")
-        fr = et.find("FromUserName").text.decode("utf-8")
-        time = et.find("CreateTime").text.decode("utf-8")
+        to = et.find("ToUserName").text
+        fr = et.find("FromUserName").text
+        time = et.find("CreateTime").text
 
-        type = et.find("MsgType").text.decode("utf-8")
-        if type == u"text":
+        type = et.find("MsgType").text
+
+        if type == "text":
             # If Chinese characters exist, xml.etree.cElementTree will auto-
             # matically decode the contents and return unicode when invoking
             # Element.text.  So we use built-in function unicode() to cover
             # various inputs.
             content = unicode(et.find("Content").text)
-
-            # Old API will be deprecated since 20130326.  As a result we have
-            # to change some logics and the following way of notifying A NEW
-            # FOLLOWER should be no longer valid.  But we keep it here just in
-            # case and it won't cost much.
-            if content == u"Hello2BizUser":
-                # A new follower.
-                # A guide message should be returned at last.
-                return HelloMessage(to, fr, time)
-
-            if content in (u"菜单", u"成绩单", u"选课指南", u"选课"):
-                # Requesting menu.
-                return MenuMessage(to, fr, time)
-
-            if content.startswith(u":") or content.startswith(u"："):
-                # Users try to contact.
+            if content.startswith(" ") or content.startswith(":") or \
+                content.startswith(u"："):
                 return BlahMessage(to, fr, time, content)
+            return QueryMessage(to, fr, time)
 
-        if type == u"event":
+        if type == "event":
             # API changed since 20130326, WTF!
             # If we get a new follower, an event msg will be pushed to our
             # server of which `MsgType` is `event`.
-            event = et.find("Event").text.decode("utf-8")
+            event = et.find("Event").text
 
-            if event == u"subscribe":
+            if event == "subscribe":
                 return HelloMessage(to, fr, time)
-            elif event == u"unsubscribe":
+
+            if event == "unsubscribe":
                 return ByeMessage(to, fr, time)
 
-        return QueryMessage(to, fr, time)
+            if event == "CLICK":
+                key = et.find("EventKey").text
+                if key == "KEY_QUERY":
+                    return QueryMessage(to, fr, time)
+                if key == "KEY_SIGNUP":
+                    return HelloMessage(to, fr, time)
+                if key == "KEY_REPORT":
+                    return ReportMessage(to, fr, time)
 
         # `MsgId` is of no use for now.
         # id = et.find("MsgId").text.decode("utf-8")
@@ -79,18 +75,12 @@ class QueryMessage(WxMessage):
     """When received, [已更新] or [无更新] or [未注册] should be returned."""
 
 
-class MenuMessage(WxMessage):
-    """When received, menu should be returned."""
-
-
 class BlahMessage(WxMessage):
     """Users try to contact."""
     def __init__(self, to, fr, time, content):
-        self.to = to
-        self.fr = fr
-        self.time = time
+        super(BlahMessage, self).__init__(to, fr, time)
         self.content = content
 
 
-if __name__ == "__main__":
-    pass
+class ReportMessage(WxMessage):
+    """Users request his/her own report."""
