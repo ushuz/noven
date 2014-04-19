@@ -5,6 +5,8 @@ import logging
 import functools
 
 import requests
+import sae.kvdb
+import vpn
 
 
 ALL_TERMS = True
@@ -13,15 +15,10 @@ NAME_URL = "http://jwxt.bjfu.edu.cn/jwxt/menu.asp"
 DATA_URL = "http://jwxt.bjfu.edu.cn/jwxt/Student/StudentGraduateInfo.asp"
 LOGOUT_URL = "http://jwxt.bjfu.edu.cn/jwxt/logoff.asp"
 
-
-def session_required(method):
-    """Decorate methods with this to require that the session exists."""
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        if not self._session:
-            self._login()
-        return method(self, *args, **kwargs)
-    return wrapper
+# Corresponding URL when using VPN
+LOGIN_URL = "https://vpn.bjfu.edu.cn/jwxt/,DanaInfo=jwxt.bjfu.edu.cn+logon.asp"
+NAME_URL = "https://vpn.bjfu.edu.cn/jwxt/,DanaInfo=jwxt.bjfu.edu.cn+menu.asp"
+DATA_URL = "https://vpn.bjfu.edu.cn/jwxt/Student/,DanaInfo=jwxt.bjfu.edu.cn+StudentGraduateInfo.asp"
 
 
 class AuthError(Exception):
@@ -53,10 +50,6 @@ class Course(dict):
 
 class User(object):
     """Providing userful methods and storage for a user."""
-    global LOGIN_URL
-    global LOGOUT_URL
-    global NAME_URL
-    global DATA_URL
 
     TPL_NEW_COURSES = u"""Hello，{{ u.name }}！有{{ len(new_courses) }}门课出分了：{{ u"、".join([u"%s(%s)" % (v.subject, v.score) for v in new_courses.values()]) }}。当前学期您的学分积为{{ u.current_GPA }}，全学程您的学分积为{{ u.GPA }}，{{ u.rank }}。"""
     TPL_WELCOME = u"""Hello，{{ u.name }}！全学程您的学分积为{{ u.GPA }}，{{ u.rank }}，共修过{{ len(u.courses) }}门课。加油！"""
@@ -84,7 +77,6 @@ class User(object):
         self._get_name()
         self._logout()
 
-    @session_required
     def _open(self, url, data=None):
         """Loop until a response got.
 
@@ -95,13 +87,21 @@ class User(object):
 
         while True:
             try:
-                r = o(url, data=data)
-            except:
+                r = o(url, data=data, verify=False)
+            except Exception as e:
+                log.error("%s - %s", self.usercode, e)
                 continue
+            kv.set("VPN_SESSION", self._session)
             return r
 
     def _login(self):
-        self._session = requests.session()
+        # self._session = requests.session()
+        # We use VPN session to perform HTTP requests
+        s = kv.get("VPN_SESSION")
+        if not s or s.expired:
+            s = vpn.Session()
+            kv.set("VPN_SESSION", s)
+        self._session = s
 
         payload = {
             "type": "Logon", "B1": u" 提　交 ".encode("gbk"),
@@ -135,6 +135,9 @@ class User(object):
             self.name = m.groups()[0]
             log.debug("%s - Name found: %s", self.usercode, self.name)
             return self.name
+        else:
+            # Try again
+            self._get_name()
 
     def _get_GPA(self, r, all=False):
         """Save and return all-term GPA or current-term GPA respectly.
@@ -308,6 +311,7 @@ class User(object):
 
 # Get logger before logging.
 log = logging.getLogger("alpha")
+kv = sae.kvdb.KVClient()
 
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s,%(msecs)d - %(levelname)s [%(name)s] %(message)s", level=logging.DEBUG, datefmt="%H:%M:%S")
