@@ -86,6 +86,7 @@ if "SERVER_SOFTWARE" not in os.environ:
 # Global logging settings
 logging.basicConfig(format="%(levelname)s [%(name)s] %(message)s", level=logging.INFO)
 logging.getLogger("libs.requests").setLevel(logging.WARNING)
+logging.getLogger("libs.NovenFetion").setLevel(logging.WARNING)
 
 app = tornado.wsgi.WSGIApplication(handlers, **settings)
 application = sae.create_wsgi_app(app)
