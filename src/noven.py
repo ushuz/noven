@@ -189,10 +189,10 @@ class HomeHandler(SignUpHandler):
             raise tornado.web.HTTPError(424)
 
         # Check blocked user and weixin
-        b = self.kv.get(utf8("block:"+ucode)) or self.kv.get(utf8("block:"+t))
-        if b:
-            self.log.error("%s - Blocked: %s", ucode, _unicode(b))
-            raise tornado.web.HTTPError(426)
+        # b = self.kv.get(utf8("block:"+ucode)) or self.kv.get(utf8("block:"+t))
+        # if b:
+        #     self.log.error("%s - Blocked: %s", ucode, _unicode(b))
+        #     raise tornado.web.HTTPError(426)
 
         try:
             # 9 digits for BJFU
@@ -289,6 +289,8 @@ class WelcomeHandler(SignUpHandler):
             try:
                 u.init()
             except Exception as e:
+                # Logout after exceptions
+                u._logout()
                 self.log.critical("%s - %s", u.usercode, e)
             self.kv.set(utf8(u.usercode), u)
 
