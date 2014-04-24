@@ -61,7 +61,7 @@ class BaseHandler(tornado.web.RequestHandler):
     def write_error(self, status_code, **kwargs):
         errors = {
             # 401 for token expired
-            401: "链接已失效，请回复「菜单」重新获取。",
+            401: "链接已失效，请重新获取。",
 
             # 404 for non-existence resources
             404: "你要的东西不在这儿。",
@@ -367,6 +367,9 @@ class WxHandler(TaskHandler):
     def post(self):
         msg = self.msg = NovenWx.parse(self.request.body)
 
+        if not msg:
+            return
+
         log = logging.getLogger("Noven.Weixin")
 
         if isinstance(msg, NovenWx.BlahMessage):
@@ -413,9 +416,6 @@ class WxHandler(TaskHandler):
 
             log.info("%s - Deleted: Un-Subscribe.", uc)
             return
-        else:
-            # Handle unknown message here.
-            pass
 
     def check_xsrf_cookie(self):
         # POSTs are made by Tencent servers, so XSRF COOKIE doesn't exist.

@@ -14,7 +14,7 @@
     <item>
       <Title><![CDATA[查看所有成绩 · 共 {{ len(current_user.courses) }} 门]]></Title>
       <Description><![CDATA[查看所有成绩]]></Description>
-      <PicUrl><![CDATA[http://mmbiz.qpic.cn/mmbiz/QhYwSe3HJUR3hUCiaWvE5quNneO10ePT7XI7rpqakrCQZ1bk5frEBm5Yibqo5IZ8n5bPCsn0mickhpjupU3uE7Pxw/0]]></PicUrl>
+      <PicUrl><![CDATA[http://mmbiz.qpic.cn/mmbiz/QhYwSe3HJUSkZpEN9kXyMGJibuTZnhlNwohsxBppttk1tJribHiaEbwC95Nm7l2MoSvYfZAKiaWcrzyJVC3TyJkmxQ/0]]></PicUrl>
       <Url><![CDATA[http://noven.sinaapp.com/mine?t={{ to.fr }}&s={{ create_signature(to.fr[:20]+to.time[-8:]) }}&n={{ to.time }}#arrow]]></Url>
     </item>
   </Articles>
