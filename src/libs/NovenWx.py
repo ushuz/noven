@@ -22,10 +22,8 @@ def parse(xmlstring):
             # Element.text.  So we use built-in function unicode() to cover
             # various inputs.
             content = unicode(et.find("Content").text)
-            if content.startswith(" ") or content.startswith(":") or \
-                content.startswith(u"："):
-                return BlahMessage(to, fr, time, content)
-            return QueryMessage(to, fr, time)
+
+            return BlahMessage(to, fr, time, content)
 
         if type == "event":
             # API changed since 20130326, WTF!
@@ -47,6 +45,10 @@ def parse(xmlstring):
                     return HelloMessage(to, fr, time)
                 if key == "KEY_REPORT":
                     return ReportMessage(to, fr, time)
+
+            if event == "VIEW":
+                # We just ignore VIEW event for now by returning None
+                return
 
         # `MsgId` is of no use for now.
         # id = et.find("MsgId").text.decode("utf-8")

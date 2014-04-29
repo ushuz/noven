@@ -77,7 +77,7 @@ class BaseHandler(tornado.web.RequestHandler):
             423: "仅支持中国移动号码。",
 
             # 424 for duplicate sign-up
-            424: "别淘气，你已经登记过了。",
+            424: "别淘气，你已经登记过了~",
 
             # 425 for activation
             425: "验证码有误。",
@@ -377,21 +377,20 @@ class WxHandler(TaskHandler):
             return
 
         # Check user's existence so we WON'T need to check it in every logic.
-        uc = self.kv.get(utf8(msg.fr))
-        if not uc:
-            self.reply("bonjour")
-            return
-
-        u = self.current_user = self.kv.get(uc)
+        u = self.current_user
         if not u:
-            self.reply("bonjour")
+            if isinstance(msg, NovenWx.HelloMessage):
+                self.reply("bonjour")
+            else:
+                self.reply(u"请先登记")
             return
 
         # Score query
         if isinstance(msg, NovenWx.QueryMessage):
             if u.wx_push:
                 # TPL_NEW_COURSES
-                self.reply(create_message(u.TPL_NEW_COURSES, u=u, new_courses=u.wx_push))
+                self.reply(create_message(u.TPL_NEW_COURSES, u=u,
+                                          new_courses=u.wx_push))
                 u.wx_push = {}
                 self.kv.set(utf8(u.usercode), u)
                 return
@@ -414,8 +413,15 @@ class WxHandler(TaskHandler):
             # s = "|".join([time.strftime("%Y%m%d"), "WX:"+u.wx_id, "Un-Subscribe"])
             # self.kv.set(utf8("block:"+u.wx_id), _unicode(s))
 
-            log.info("%s - Deleted: Un-Subscribe.", uc)
+            log.info("%s - Deleted: Un-Subscribe.", u.usercode)
             return
+
+    def get_current_user(self):
+        uc = self.kv.get(utf8(self.msg.fr))
+        if not uc:
+            return
+        u = self.kv.get(uc)
+        return u
 
     def check_xsrf_cookie(self):
         # POSTs are made by Tencent servers, so XSRF COOKIE doesn't exist.
