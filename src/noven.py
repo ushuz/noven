@@ -83,7 +83,10 @@ class BaseHandler(tornado.web.RequestHandler):
             425: "验证码有误。",
 
             # 426 for blocked
-            426: "你已被 Noven 屏蔽，请勿再次尝试。"
+            426: "你已被 Noven 屏蔽，请勿再次尝试。",
+
+            # 427 for encountering Fetion verification
+            427: "飞信状态异常，请留空手机号码和飞信密码。",
 
             # 444 for unknown
         }
@@ -236,7 +239,7 @@ class HomeHandler(SignUpHandler):
                     raise tornado.web.HTTPError(422)
                 except NovenFetion.Critical as e:
                     self.log.critical("%s - %s", ucode, e)
-                    raise tornado.web.HTTPError(444)
+                    raise tornado.web.HTTPError(427)
                 except Exception:
                     continue
                 break
@@ -571,7 +574,7 @@ class SMSById(TaskHandler):
                 raise tornado.web.HTTPError(422)
             except NovenFetion.Critical as e:
                 log.critical("%s - %s", id, e)
-                raise tornado.web.HTTPError(444)
+                raise tornado.web.HTTPError(427)
             except Exception:
                 continue
             break

@@ -49,6 +49,7 @@ httplib.responses.update({
     424: "Duplicate Sign Up",
     425: "Not Activated",
     426: "Blocked",
+    427: "Verification Required",
     444: "Unknown",
 })
 
