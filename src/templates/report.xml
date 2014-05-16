@@ -9,13 +9,13 @@
       <Title><![CDATA[{{ current_user.name }}的成绩单]]></Title>
       <Description><![CDATA[成绩单]]></Description>
       <PicUrl><![CDATA[http://mmbiz.qpic.cn/mmbiz/QhYwSe3HJUR3hUCiaWvE5quNneO10ePT7RFM9ptYA9bHyIIBHW18TRaHUAic3woU67K6EK3hQhyWuEWVNoVF7ibjA/0]]></PicUrl>
-      <Url><![CDATA[http://noven.sinaapp.com/mine?t={{ to.fr }}&s={{ create_signature(to.fr[:20]+to.time[-8:]) }}&n={{ to.time }}#title]]></Url>
+      <Url><![CDATA[http://noven.sinaapp.com/mine?t={{ to.fr }}&s={{ create_signature(to.fr[:20]+to.time[-8:]) }}&n={{ to.time }}&r=title]]></Url>
     </item>
     <item>
       <Title><![CDATA[查看所有成绩 · 共 {{ len(current_user.courses) }} 门]]></Title>
       <Description><![CDATA[成绩单]]></Description>
       <PicUrl><![CDATA[http://mmbiz.qpic.cn/mmbiz/QhYwSe3HJUSkZpEN9kXyMGJibuTZnhlNwohsxBppttk1tJribHiaEbwC95Nm7l2MoSvYfZAKiaWcrzyJVC3TyJkmxQ/0]]></PicUrl>
-      <Url><![CDATA[http://noven.sinaapp.com/mine?t={{ to.fr }}&s={{ create_signature(to.fr[:20]+to.time[-8:]) }}&n={{ to.time }}#arrow]]></Url>
+      <Url><![CDATA[http://noven.sinaapp.com/mine?t={{ to.fr }}&s={{ create_signature(to.fr[:20]+to.time[-8:]) }}&n={{ to.time }}&r=arrow]]></Url>
     </item>
   </Articles>
 </xml>

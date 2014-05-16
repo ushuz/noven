@@ -333,17 +333,17 @@ class ReportHandler(BaseHandler):
             log.error("%s - Illegal access.", t)
             raise tornado.web.HTTPError(444)
 
-        # Session expires in 30 min.
-        # Tell users their Token expired by 401.
-        if time.time() - float(n) > 1800:
-            log.error("%s - Token expired.", t)
-            raise tornado.web.HTTPError(401)
-
         uc = self.kv.get(utf8(t))
         # Check if usercode was successfully retrieved.
         if not uc:
             log.critical("%s - Failed to retrieve usercode.", t)
             raise tornado.web.HTTPError(444)
+
+        # Token expires in 30 min.
+        # Tell users their Token expired by 401.
+        if time.time() - float(n) > 1800:
+            log.info("%s - Token expired.", uc)
+            raise tornado.web.HTTPError(401)
 
         u = self.kv.get(uc)
         # Check if User object was successfully retrieved.

@@ -16,7 +16,7 @@
       </div>
 
       <div class="card-scroll">
-    {% for i, c in enumerate([c for c in u.courses.values() if t in c.term]) %}
+    {% for i, c in enumerate([c for c in u.courses.values() if t == c.term]) %}
         <div class="cell{% if i==0 %} cell-first{% end %}">
           <table><tbody><tr>
             <td class="no"><span>{{ i+1 }}</span></td>
