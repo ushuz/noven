@@ -215,18 +215,19 @@ class HomeHandler(SignUpHandler):
             self.log.error("%s - %s", ucode, e)
             raise tornado.web.HTTPError(421)
 
-        # self.log.info("%s - User created.", ucode)
         self.set_secure_cookie("uc", ucode)
 
-        TPL_VCODE = u'''Hello，%s！您的登记验证码：%s [Noven]'''
+        TPL_VCODE = u"""Hello，%s！您的登记验证码：%s [Noven]"""
         if new_user.mobileno and new_user.mobilepass:
-            # If user's usercode and password are OK, then we should send
-            # activation SMS.  SMS should be sent synchronously in order to
-            # redirect the user to error page when NovenFetion.AuthError occurs.
+            # If  usercode and password are OK, then we should send activation
+            # code.  SMS should be sent synchronously in order to redirect the
+            # user to error page when shit happens.
             n = utf8(new_user.mobileno)
             p = utf8(new_user.mobilepass)
-            c = utf8(TPL_VCODE % (new_user.name,
-                     hashlib.sha1(self._new_cookie["uc"].value).hexdigest()[:6]))
+
+            cookie = self._new_cookie["uc"].value
+            vcode = str(int(hashlib.sha1(cookie).hexdigest(), 16))[:6]
+            c = utf8(TPL_VCODE % (new_user.name, vcode))
 
             fetion = NovenFetion.Fetion(n, p)
             while True:
@@ -257,7 +258,7 @@ class HomeHandler(SignUpHandler):
             # self.log.info("%s - Activated.", ucode)
             self.redirect("/welcome")
         else:
-            self.log.critical("%s - Invalid User Object.", ucode, e)
+            self.log.critical("%s - Invalid user object.", ucode, e)
             raise tornado.web.HTTPError(444)
 
 
@@ -268,16 +269,16 @@ class VerifyHandler(SignUpHandler):
 
     @authenticated
     def post(self):
-        vcode = self.get_argument("vcode", None)
+        v = self.get_argument("vcode", None)
+        o = str(int(hashlib.sha1(self.get_cookie("uc")).hexdigest(), 16))[:6]
         u = self.current_user
 
-        if vcode.lower() == hashlib.sha1(self.get_cookie("uc")).hexdigest()[:6]:
+        if v.isdigit() and v == o:
             u.verified = True
             self.kv.set(utf8(u.usercode), u)
-            # self.log.info("%s - Activated.", u.usercode)
             self.redirect("/welcome")
         else:
-            self.log.error("%s - Wrong Activation code.", u.usercode)
+            self.log.error("%s - Invalid activation code.", u.usercode)
             raise tornado.web.HTTPError(425)
 
 
@@ -310,7 +311,7 @@ class WelcomeHandler(SignUpHandler):
                 )
 
             self.log.info("%s - Name: %s Courses: %d", u.usercode,
-                u.name, len(u.courses))
+                          u.name, len(u.courses))
         else:
             self.log.critical("In-Active users accessing welcome page.")
             raise tornado.web.HTTPError(444)
@@ -351,7 +352,8 @@ class ReportHandler(BaseHandler):
             log.critical("%s - Failed to retrieve user.", uc)
             raise tornado.web.HTTPError(444)
 
-        u.terms = sorted(list(set([c.term for c in u.courses.values()])), reverse=True)
+        u.terms = sorted(list(set([c.term for c in u.courses.values()])),
+                         reverse=True)
         self.render("report.html", u=u)
         log.info("%s - %s's report accessed.", uc, u.name)
 
@@ -511,7 +513,8 @@ class UpdateById(TaskHandler):
             raise tornado.web.HTTPError(500)
 
         if new_courses:
-            log.info("%s - %s has %s updates. GPA %s.", id, u.name, len(new_courses), u.GPA)
+            log.info("%s - %s has %s updates. GPA %s.",
+                     id, u.name, len(new_courses), u.GPA)
 
             # If `u.wx_id` exists, we should update `u.wx_push` with `new_courses`
             # so that we can return it when users performs a score query by Weixin,
@@ -521,7 +524,8 @@ class UpdateById(TaskHandler):
 
             # If `u.mobileno` exists, we should notify the user via SMS.
             if u.mobileno:
-                noteinfo = utf8(create_message(u.TPL_NEW_COURSES, u=u, new_courses=new_courses))
+                noteinfo = utf8(create_message(u.TPL_NEW_COURSES, u=u,
+                                               new_courses=new_courses))
                 noteinfo = base64.b64encode(noteinfo)
                 sae.taskqueue.add_task(
                     "send_notification_sms_task",
