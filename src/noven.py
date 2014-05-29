@@ -7,6 +7,7 @@ import logging
 import os
 import re
 import time
+import urllib
 
 import sae
 import sae.kvdb
@@ -21,6 +22,7 @@ from libs import alpha2 as alpha
 from libs import beta
 from libs import NovenFetion
 from libs import NovenWx
+from libs import requests
 
 
 # ----------------------------------------------------------------------
@@ -296,22 +298,38 @@ class WelcomeHandler(SignUpHandler):
                 # Logout after exceptions
                 u._logout()
                 self.log.critical("%s - %s", u.usercode, e)
+
             self.kv.set(utf8(u.usercode), u)
 
-            if u.wx_id:
-                self.kv.set(utf8(u.wx_id), utf8(u.usercode))
+            l = [
+                "Code: %s" % u.usercode,
+                "Name: %s" % u.name,
+                "GPA: %s" % u.GPA,
+                "Courses: %d" % len(u.courses),
+            ]
 
             if u.mobileno and u.mobilepass:
                 wellinfo = utf8(create_message(u.TPL_WELCOME, u=u))
                 wellinfo = base64.b64encode(wellinfo)
                 sae.taskqueue.add_task(
-                    "send_verify_sms_task",
+                    "message_queue",
                     "/backend/sms/%s" % u.usercode,
                     wellinfo
                 )
+                l.append("Mobile: %s" % u.mobileno)
+
+            if u.wx_id:
+                self.kv.set(utf8(u.wx_id), utf8(u.usercode))
 
             self.log.info("%s - Name: %s Courses: %d", u.usercode,
                           u.name, len(u.courses))
+
+            # Notie
+            content = utf8("\n".join(l))
+            title = "New User"
+            pl = urllib.urlencode({"t": title, "c": content})
+            sae.taskqueue.add_task("message_queue", "/backend/notie", pl)
+
         else:
             self.log.critical("In-Active users accessing welcome page.")
             raise tornado.web.HTTPError(444)
@@ -528,7 +546,7 @@ class UpdateById(TaskHandler):
                                                new_courses=new_courses))
                 noteinfo = base64.b64encode(noteinfo)
                 sae.taskqueue.add_task(
-                    "send_notification_sms_task",
+                    "message_queue",
                     "/backend/sms/%s" % u.usercode,
                     noteinfo
                 )
@@ -584,6 +602,37 @@ class SMSById(TaskHandler):
             break
 
         log.info("%s - SMS Sent to %s.", id, n)
+
+    def check_xsrf_cookie(self):
+        pass
+
+
+class NotieHandler(TaskHandler):
+    """Push notifications through Notie.
+
+    Mainly for two purposes:
+        1. New User
+        2. Update Summary
+    """
+    def post(self):
+        title = self.get_argument("t")
+        content = self.get_argument("c")
+        action = self.get_argument("a", "Fly Me To The Moon")
+
+        url = "https://io.notie.io"
+
+        data = {
+            "source_id": 42,
+            "secret": "e850caf0c9d",
+
+            "title": title,
+            "action": action,
+            "content": content,
+        }
+
+        r = requests.post(url, data=data, verify=False)
+
+        self.write(r.json())
 
     def check_xsrf_cookie(self):
         pass
