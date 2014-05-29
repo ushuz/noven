@@ -475,27 +475,25 @@ class UpdateAll(TaskHandler):
         # be empty, only ZJU users would be pushed into queue.
         marker = self.get_argument("marker", None)
 
-        # ZJU update.
-        ids = self.kv.getkeys_by_prefix("3", limit=1000, marker=marker)
-        try:
-            # If the for-loop breaks at its first element, id will not be created
-            # and cause NameError when handling exception.
-            id = ""
-            for id in ids:
-                sae.taskqueue.add_task("update_queue", "/backend/update/%s" % id)
-        except sae.kvdb.Error as e:
-            sae.taskqueue.add_task("update_queue", "/backend/update?marker=%s" % id)
+        prefixes = ("3", "1")
+        total = 0
+        for prefix in prefixes:
+            ucs = self.kv.getkeys_by_prefix(prefix, limit=1000, marker=marker)
+            try:
+                uc = ""
+                for uc in ucs:
+                    sae.taskqueue.add_task("update_queue", "/backend/update/%s" % uc)
+                    total += 1
+            except sae.kvdb.Error as e:
+                # KVDB is annoying.  We may encounter different errors, such as `Timed
+                # Out`, `No Server Available`, etc.  We should just continue from here.
+                sae.taskqueue.add_task("update_queue", "/backend/update?marker=%s" % uc)
 
-        # BJFU update.
-        ucs = self.kv.getkeys_by_prefix("1", limit=1000, marker=marker)
-        try:
-            uc = ""
-            for uc in ucs:
-                sae.taskqueue.add_task("update_queue", "/backend/update/%s" % uc)
-        except sae.kvdb.Error as e:
-            # KVDB is annoying.  We may encounter different errors, such as `Timed
-            # Out`, `No Server Available`, etc.  We should just continue from here.
-            sae.taskqueue.add_task("update_queue", "/backend/update?marker=%s" % uc)
+        # Notie
+        title = "Update Started"
+        content = utf8("%d tasks added." % total)
+        pl = urllib.urlencode({"t": title, "c": content})
+        sae.taskqueue.add_task("message_queue", "/backend/notie", pl)
 
 
 class UpdateById(TaskHandler):
