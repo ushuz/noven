@@ -202,20 +202,16 @@ class HomeHandler(SignUpHandler):
         try:
             # 9 digits for BJFU
             if len(ucode) == 9:
-                new_user = alpha.User(
-                    ucode, upass, mcode, mpass, t
-                )
+                new_user = alpha.User(ucode, upass, mcode, mpass, t)
             # 10 digits for ZJU
             elif len(ucode) == 10:
-                new_user = beta.User(
-                    ucode, upass, mcode, mpass, t
-                )
-            # Invalid usercode
-            else:
-                raise Exception("Invalid usercode.")
-        except Exception as e:
+                new_user = beta.User(ucode, upass, mcode, mpass, t)
+        except (alpha.AuthError, beta.AuthError) as e:
             self.log.error("%s - %s", ucode, e)
             raise tornado.web.HTTPError(421)
+        except Exception as e:
+            self.log.error("%s - %s (%s)", ucode, e, upass)
+            raise tornado.web.HTTPError(500)
 
         self.set_secure_cookie("uc", ucode)
 
@@ -321,15 +317,14 @@ class WelcomeHandler(SignUpHandler):
             if u.wx_id:
                 self.kv.set(utf8(u.wx_id), utf8(u.usercode))
 
-            self.log.info("%s - Name: %s Courses: %d", u.usercode,
-                          u.name, len(u.courses))
-
             # Notie
             content = utf8("\n".join(l))
             title = "New User"
             pl = urllib.urlencode({"t": title, "c": content})
             sae.taskqueue.add_task("message_queue", "/backend/notie", pl)
 
+            self.log.info("%s - Name: %s Courses: %d", u.usercode,
+                          u.name, len(u.courses))
         else:
             self.log.critical("In-Active users accessing welcome page.")
             raise tornado.web.HTTPError(444)
