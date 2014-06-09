@@ -287,6 +287,12 @@ class WelcomeHandler(SignUpHandler):
         if u.verified:
             self.render("welcome.html")
 
+            # Return if the user is already initialized (to avoid unnecessary
+            # re-initialization when the user refresh welcome page).
+            # Won't work if the user have no courses.
+            if len(u.courses):
+                return
+
             # Here `init()` could be async.
             try:
                 u.init()
