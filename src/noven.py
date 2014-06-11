@@ -569,15 +569,6 @@ class SMSById(TaskHandler):
         p = utf8(u.mobilepass)  # Fetion password
         c = base64.b64decode(self.request.body) + "[Noven]"  # SMS content
 
-        # There are chances only mobile was saved. Delete the mobile and
-        # fetion password to correct this.
-        if not n or not p:
-            u.mobileno = None
-            u.mobilepass = None
-            self.kv.set(utf8(id), u)
-            log.error("%s - Updated: Mobile or password missing.", id)
-            raise tornado.web.HTTPError(422)
-
         fetion = NovenFetion.Fetion(n, p)
         while True:
             try:

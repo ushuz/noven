@@ -43,7 +43,7 @@ class Fetion(object):
         except Exception:
             raise ConnError("%s - ConnError: Login" % self.mobile)
 
-        if u"密码错误" in r.text or u"登陆失败" in r.text:
+        if u"密码错误" in r.text or u"登陆失败" in r.text or u"密码不能为空" in r.text:
             raise AuthError("%s - AuthError: Wrong Mobile or Password" %
                             self.mobile)
 
