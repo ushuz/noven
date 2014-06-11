@@ -190,7 +190,7 @@ class HomeHandler(SignUpHandler):
         # 2 weixin 1 profile is not my concern.
         uc = self.kv.get(str(t))
         if uc and uc != ucode:
-            self.log.error("%s - Duplicate.", ucode)
+            self.log.error("%s - Duplicate sign-up.", ucode)
             raise tornado.web.HTTPError(424)
 
         # Check blocked user and weixin
@@ -431,7 +431,7 @@ class WxHandler(TaskHandler):
         # Un-Subscribe event.
         # Delete users when they un-subscribe.  Block them manually if needed.
         if isinstance(msg, NovenWx.ByeMessage):
-            self.kv.delete(utf8(u.wx_id))
+            # self.kv.delete(utf8(u.wx_id))
             self.kv.delete(utf8(u.usercode))
 
             # s = "|".join([time.strftime("%Y%m%d"), "WX:"+u.wx_id, "Un-Subscribe"])
@@ -521,7 +521,7 @@ class UpdateById(TaskHandler):
         except (alpha.AuthError, beta.AuthError) as e:
             log.error("%s - %s", id, e)
             # User changed their password for sure. Delete them.
-            if u.wx_id: self.kv.delete(utf8(u.wx_id))
+            # if u.wx_id: self.kv.delete(utf8(u.wx_id))
             self.kv.delete(utf8(u.usercode))
             log.info("%s - Deleted: User changed password.", id)
             raise tornado.web.HTTPError(421)
