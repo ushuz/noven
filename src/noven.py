@@ -362,7 +362,7 @@ class ReportHandler(BaseHandler):
         # Token expires in 30 min.
         # Tell users their Token expired by 401.
         if time.time() - float(n) > 1800:
-            log.info("%s - Token expired.", uc)
+            log.debug("%s - Token expired.", uc)
             raise tornado.web.HTTPError(401)
 
         u = self.kv.get(uc)
@@ -374,7 +374,7 @@ class ReportHandler(BaseHandler):
         u.terms = sorted(list(set([c.term for c in u.courses.values()])),
                          reverse=True)
         self.render("report.html", u=u)
-        log.info("%s - %s's report accessed.", uc, u.name)
+        log.debug("%s - %s's report accessed.", uc, u.name)
 
 
 # ----------------------------------------------------------------------
@@ -479,7 +479,7 @@ class UpdateAll(TaskHandler):
         prefixes = ("3", "1")
         total = 0
         for prefix in prefixes:
-            ucs = self.kv.getkeys_by_prefix(prefix, limit=1000, marker=marker)
+            ucs = self.kv.getkeys_by_prefix(prefix, limit=5000, marker=marker)
             try:
                 uc = ""
                 for uc in ucs:
