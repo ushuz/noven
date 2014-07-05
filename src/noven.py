@@ -206,6 +206,9 @@ class HomeHandler(SignUpHandler):
             # 10 digits for ZJU
             elif len(ucode) == 10:
                 new_user = beta.User(ucode, upass, mcode, mpass, t)
+            # Invalid usercode
+            else:
+                raise alpha.AuthError("Invalid usercode.")
         except (alpha.AuthError, beta.AuthError) as e:
             self.log.error("%s - %s", ucode, e)
             raise tornado.web.HTTPError(421)
