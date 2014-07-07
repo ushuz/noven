@@ -332,8 +332,8 @@ class WelcomeHandler(SignUpHandler):
             pl = urllib.urlencode({"t": title, "c": content})
             sae.taskqueue.add_task("message_queue", "/backend/notie", pl)
 
-            self.log.info("%s - Name: %s Courses: %d", u.usercode,
-                          u.name, len(u.courses))
+            self.log.info("%s - %s signed up with %d courses, GPA %d.",
+                          u.usercode, u.name, len(u.courses), u.GPA)
         else:
             self.log.critical("In-Active users accessing welcome page.")
             raise tornado.web.HTTPError(444)
@@ -437,7 +437,8 @@ class WxHandler(TaskHandler):
             # self.kv.delete(utf8(u.wx_id))
             self.kv.delete(utf8(u.usercode))
 
-            # s = "|".join([time.strftime("%Y%m%d"), "WX:"+u.wx_id, "Un-Subscribe"])
+            # s = "|".join([time.strftime(
+            #     "%Y%m%d"), "WX:"+u.wx_id, "Un-Subscribe"])
             # self.kv.set(utf8("block:"+u.wx_id), _unicode(s))
 
             log.info("%s - Deleted: Un-Subscribe.", u.usercode)
@@ -473,25 +474,30 @@ class WxHandler(TaskHandler):
 
 class UpdateAll(TaskHandler):
     def get(self):
-        # We make breakpoint a marker to continue the update process.
-        # Depending on the type of the marker, only the matching group will be
-        # pushed into queue.  That's to say, if marker is a ZJU id, `ucs` would
-        # be empty, only ZJU users would be pushed into queue.
+        # We make breakpoint a marker to continue the update process.  Say the
+        # marker is a ZJU id, `ucs` would be empty if prefix is not `3`, as a
+        # result, only those ZJU guys who are left would be pushed into the
+        # queue.
         marker = self.get_argument("marker", None)
 
         prefixes = ("3", "1")
-        total = 0
+        total = delay = 0
         for prefix in prefixes:
             ucs = self.kv.getkeys_by_prefix(prefix, limit=5000, marker=marker)
             try:
                 uc = ""
                 for uc in ucs:
-                    sae.taskqueue.add_task("update_queue", "/backend/update/%s" % uc)
                     total += 1
+                    if total % 5 == 0:
+                        delay += 1
+                    sae.taskqueue.add_task(
+                        "update_queue", "/backend/update/%s" % uc, delay=delay)
             except sae.kvdb.Error as e:
-                # KVDB is annoying.  We may encounter different errors, such as `Timed
-                # Out`, `No Server Available`, etc.  We should just continue from here.
-                sae.taskqueue.add_task("update_queue", "/backend/update?marker=%s" % uc)
+                # KVDB is annoying.  We may encounter different errors, such
+                # as `Timed Out`, `No Server Available`, etc.  We should just
+                # continue from here.
+                sae.taskqueue.add_task(
+                    "update_queue", "/backend/update?marker=%s" % uc)
 
         # Notie
         title = "Update Started"
@@ -530,15 +536,21 @@ class UpdateById(TaskHandler):
             raise tornado.web.HTTPError(421)
         except Exception as e:
             log.error("%s - %s", id, e)
-            raise tornado.web.HTTPError(500)
+            raise tornado.web.HTTPError(444)
 
         if new_courses:
             log.info("%s - %s has %s updates. GPA %s.",
                      id, u.name, len(new_courses), u.GPA)
 
-            # If `u.wx_id` exists, we should update `u.wx_push` with `new_courses`
-            # so that we can return it when users performs a score query by Weixin,
-            # no matter `u.mobileno` exists or not.
+            # It's not likely that 5 or more new releases within 3h.  Fishy
+            # things might happen.  Should be disabled after hot phrase.
+            if len(new_courses) > 4:
+                log.critical("%s - Update aborted.", id)
+                raise tornado.web.HTTPError(444)
+
+            # If `u.wx_id` exists, we should update `u.wx_push` with
+            # `new_courses` so that we can return it when users performs a
+            # score query by Weixin, no matter `u.mobileno` exists or not.
             if u.wx_id:
                 u.wx_push.update(new_courses)
 
@@ -554,7 +566,7 @@ class UpdateById(TaskHandler):
                 )
 
         # Save to KVDB after every update.
-        # Rank maybe updated without new releases,
+        # Rank maybe updated without new releases.
         self.kv.set(utf8(u.usercode), u)
 
 
@@ -568,9 +580,9 @@ class SMSById(TaskHandler):
             log.error("%s - User not exists.", id)
             raise tornado.web.HTTPError(404)
 
-        n = utf8(u.mobileno)  # Mobile number
-        p = utf8(u.mobilepass)  # Fetion password
-        c = base64.b64decode(self.request.body) + "[Noven]"  # SMS content
+        n = utf8(u.mobileno)
+        p = utf8(u.mobilepass)
+        c = base64.b64decode(self.request.body) + "[Noven]"
 
         fetion = NovenFetion.Fetion(n, p)
         while True:
