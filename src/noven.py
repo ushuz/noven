@@ -332,7 +332,7 @@ class WelcomeHandler(SignUpHandler):
             pl = urllib.urlencode({"t": title, "c": content})
             sae.taskqueue.add_task("message_queue", "/backend/notie", pl)
 
-            self.log.info("%s - %s signed up with %d courses, GPA %d.",
+            self.log.info("%s - %s signed up with %d courses, GPA %s.",
                           u.usercode, u.name, len(u.courses), u.GPA)
         else:
             self.log.critical("In-Active users accessing welcome page.")
