@@ -1,8 +1,9 @@
 # -*- coding:utf-8 -*-
 
-import re
-import logging
 import functools
+import logging
+import re
+import time
 
 import requests
 import sae.kvdb
@@ -91,7 +92,6 @@ class User(object):
             except Exception as e:
                 log.error("%s - %s", self.usercode, e)
                 continue
-            kv.set("VPN_SESSION", self._session)
             return r
 
     def _login(self):
@@ -140,8 +140,7 @@ class User(object):
             self._get_name()
 
     def _get_GPA(self, r, all=False):
-        """Save and return all-term GPA or current-term GPA respectly.
-        """
+        """Save and return all-term GPA or current-term GPA respectly."""
         pattern = u"<p>在本查询时间段，你的学分积为(.+?)、必修课取"
         m = re.search(pattern, r.content.decode("gbk"))
         if m:
@@ -151,12 +150,12 @@ class User(object):
                 return self.GPA
             else:
                 self.current_GPA = m.group(1)
-                log.debug("%s - Current GPA updated: %s", self.usercode, self.current_GPA)
+                log.debug("%s - Current GPA updated: %s",
+                          self.usercode, self.current_GPA)
                 return self.current_GPA
 
     def _get_courses(self, r):
-        """Save and return newly-released courses, save rank as well.
-        """
+        """Save and return newly-released courses, save rank as well."""
         # If user not regisered yet, then we can't fetch any data.
         # Remember to logout before raise.
         if u"你还没有学期注册" in r.content.decode("gbk"):
@@ -173,11 +172,13 @@ class User(object):
             # malformed response we received is to blame, i.e. `r.content` is
             # not completed.  We should raise here to exit as try...except
             # is set in higher level.
-            log.debug("%s - Something wrong with the returned data.", self.usercode)
+            log.debug(
+                "%s - Something wrong with the returned data.", self.usercode)
             raise Exception("Data corrupted.")
 
         # Save the rank calculated by JWXT.
-        # If failed, turn to default.  Most probably, the user is in his first term.
+        # If failed, turn to default.  Most probably, the user is in his first
+        # term.
         try:
             self.rank = unicode(l[-1].contents[1].contents[2].string[5:]) \
                 if u"全学程" in l[-1].contents[1].contents[2].string \
@@ -199,7 +200,8 @@ class User(object):
                 continue
 
             # Normal cases.
-            if i.contents[1].string != u"&nbsp;" and i.contents[3].get("colspan") != u"5":
+            if i.contents[1].string != u"&nbsp;" \
+                    and i.contents[3].get("colspan") != u"5":
                 # When [期末] is empty, we turn to [备注].
                 _score = i.contents[3].contents[0].string \
                     if i.contents[3].contents[0].string \
@@ -212,10 +214,11 @@ class User(object):
                     term=unicode(i.contents[13].string + i.contents[15].string)
                 )
 
-                # In some cases the user may retake and study a same-name-course in a
-                # term, e.g. user:120824114 - [大学英语].  There will be 2 courses and
-                # they have same name and term and can not be saved at the same time.
-                # So, if [选课类型] is [重修], we append a flag to the key.
+                # In some cases the user may retake and study a
+                # same-name-course in a term, e.g. user:120824114 - [大学英语].
+                # There will be 2 courses and they have same name and term and
+                # can not be saved at the same time. So, if [选课类型] is [重修],
+                # we append a flag to the key.
                 _type = unicode(i.contents[19].contents[0].string) \
                     if i.contents[19].contents else u""
 
@@ -235,10 +238,11 @@ class User(object):
                     term=unicode(i.contents[5].string + i.contents[7].string)
                 )
 
-                # In some cases the user may retake and study a same-name-course in a
-                # term, e.g. user:120824114 - [大学英语].  There will be 2 courses and
-                # they have same name and term and can not be saved at the same time.
-                # So, if [选课类型] is [重修], we append a flag to the key.
+                # In some cases the user may retake and study a
+                # same-name-course in a term, e.g. user:120824114 - [大学英语].
+                # There will be 2 courses and they have same name and term and
+                # can not be saved at the same time. So, if [选课类型] is [重修],
+                # we append a flag to the key.
                 _type = unicode(i.contents[11].contents[0].string) \
                     if i.contents[11].contents else u""
 
@@ -251,6 +255,23 @@ class User(object):
                 # If no course was created, we should simply continue in case
                 # of encountering NameError later.
                 continue
+
+        # Check Graduation Project
+        pattern = u"""题目：(.+?)<br>\s*导师：(.+?)<br>\s*成绩：(.+?)"""
+        m = re.search(pattern, r.content.decode("gbk"))
+        if m:
+            # print m.groups()
+            subject, _, score = m.groups()
+            course = Course(
+                subject=subject,
+                score=score,
+                point=u"-",
+                # Graduation Project will only be released in the second term.
+                term="%d2" % (time.gmtime().tm_year - 1),
+            )
+            key = course.term + course.subject
+            new_courses[key] = course
+            log.debug("%s - Course: %s", self.usercode, key)
 
         # Save newly-released courses.
         self.courses.update(new_courses)
@@ -267,8 +288,7 @@ class User(object):
         return self._open(DATA_URL, data=payload)
 
     def init(self):
-        """Initialize the User's data.
-        """
+        """Initialize the user's data."""
         self._login()
 
         # Initializing data.
@@ -283,13 +303,12 @@ class User(object):
         self._get_GPA(r)
 
         log.debug("%s - %s has %d courses in total.", self.usercode,
-            self.name, len(self.courses))
+                  self.name, len(self.courses))
 
         self._logout()
 
     def update(self):
-        """Update & return newly-released courses for external call.
-        """
+        """Update & return newly-released courses for external call."""
         self._login()
 
         # Get `new_courses`
@@ -304,15 +323,18 @@ class User(object):
             self._get_GPA(r)
 
             log.debug("%s - %s has %d new courses.", self.usercode,
-                self.name, len(new_courses))
+                      self.name, len(new_courses))
 
         self._logout()
         return new_courses
+
 
 # Get logger before logging.
 log = logging.getLogger("alpha")
 kv = sae.kvdb.KVClient()
 
 if __name__ == "__main__":
-    logging.basicConfig(format="%(asctime)s,%(msecs)d - %(levelname)s [%(name)s] %(message)s", level=logging.DEBUG, datefmt="%H:%M:%S")
+    logging.basicConfig(
+        format="%(asctime)s,%(msecs)d - %(levelname)s [%(name)s] %(message)s",
+        level=logging.DEBUG, datefmt="%H:%M:%S")
     logging.getLogger("requests").setLevel(logging.WARNING)
