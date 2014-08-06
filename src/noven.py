@@ -483,7 +483,7 @@ class UpdateAll(TaskHandler):
         prefixes = ("3", "1")
         total = delay = 0
         for prefix in prefixes:
-            ucs = self.kv.getkeys_by_prefix(prefix, limit=5000, marker=marker)
+            ucs = self.kv.getkeys_by_prefix(prefix, limit=50000, marker=marker)
             try:
                 uc = ""
                 for uc in ucs:
