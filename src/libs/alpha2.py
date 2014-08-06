@@ -6,7 +6,6 @@ import re
 import time
 
 import requests
-import sae.kvdb
 import vpn
 
 
@@ -98,6 +97,9 @@ class User(object):
     def _login(self):
         # self._session = requests.session()
         # We use VPN session to perform HTTP requests
+        import sae.kvdb
+        kv = sae.kvdb.KVClient()
+
         s = kv.get("VPN_SESSION")
         if not s or s.expired:
             s = vpn.Session()
@@ -272,8 +274,9 @@ class User(object):
                 term="%d2" % (time.gmtime().tm_year - 1),
             )
             key = course.term + course.subject
-            new_courses[key] = course
-            log.debug("%s - Course: %s", self.usercode, key)
+            if course not in courses or key not in self.courses:
+                new_courses[key] = course
+                log.debug("%s - Course: %s", self.usercode, key)
 
         # Save newly-released courses.
         self.courses.update(new_courses)
@@ -333,7 +336,6 @@ class User(object):
 
 # Get logger before logging.
 log = logging.getLogger("alpha")
-kv = sae.kvdb.KVClient()
 
 if __name__ == "__main__":
     logging.basicConfig(

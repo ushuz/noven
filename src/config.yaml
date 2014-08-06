@@ -6,15 +6,18 @@ libraries:
   version: "3.1.1"
 
 cron:
-- description: Hot
+- description: Hoot - 7x a day
   url: backend/update
-  schedule: "2 0,10,12-22/3 * 1,2,7 *"
-- description: Warm
+  schedule: "2 0,10,12-22/3 * * *"
+- description: Warm - 2x a day
   url: backend/update
-  schedule: "2 18 * 3,6,8,9,12 *"
-- description: Chill
+  schedule: "2 12,20 * * *"
+- description: Cool - 1x a day
   url: backend/update
-  schedule: "2 12 */8 4,5,10,11 *"
+  schedule: "2 18 * * *"
+- description: Cold - 1x every 8 day
+  url: backend/update
+  schedule: "2 12 */8 * *"
 
 handlers:
 - url: /static/
