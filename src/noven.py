@@ -473,6 +473,10 @@ class WxHandler(TaskHandler):
 
 
 class UpdateAll(TaskHandler):
+    def prepare(self):
+        self.kv.set("update.success", 0)
+        self.kv.set("update.courses", 0)
+
     def get(self):
         # We make breakpoint a marker to continue the update process.  Say the
         # marker is a ZJU id, `ucs` would be empty if prefix is not `3`, as a
@@ -502,6 +506,26 @@ class UpdateAll(TaskHandler):
         # Notie
         title = "Update Started"
         content = utf8("%d tasks added." % total)
+        pl = urllib.urlencode({"t": title, "c": content})
+        sae.taskqueue.add_task("message_queue", "/backend/notie", pl)
+
+        # Update summary
+        sae.taskqueue.add_task(
+            "update_queue", "/backend/summary?total=%s" % total)
+
+
+class SummaryHandler(TaskHandler):
+    def get(self):
+        total = int(self.get_argument("total"))
+        success = self.kv.get("update.success")
+        courses = self.kv.get("update.courses")
+        failed = total - success
+        avg = float(courses) / float(success)
+
+        title = "Update Finished"
+        content = utf8("%d success, %d failed.\n"
+                       "%d courses, %.1f on average." %
+                       (success, failed, courses, avg))
         pl = urllib.urlencode({"t": title, "c": content})
         sae.taskqueue.add_task("message_queue", "/backend/notie", pl)
 
@@ -568,6 +592,10 @@ class UpdateById(TaskHandler):
         # Save to KVDB after every update.
         # Rank maybe updated without new releases.
         self.kv.set(utf8(u.usercode), u)
+
+        self.kv.set("update.success", self.kv.get("update.success")+1)
+        self.kv.set(
+            "update.courses", self.kv.get("update.courses")+len(new_courses))
 
 
 class SMSById(TaskHandler):

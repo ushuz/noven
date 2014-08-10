@@ -36,6 +36,7 @@ handlers = [
     (r"/backend/update/([0-9]{9,10})", noven.UpdateById),
     (r"/backend/sms/([0-9]{9,10})", noven.SMSById),
     (r"/backend/notie", noven.NotieHandler),
+    (r"/backend/summary", noven.SummaryHandler),
 
     (r"/admin", admin.Main),
     (r"/admin/user/([0-9]{9,10})", admin.UsersManagement),
