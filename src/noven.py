@@ -476,6 +476,7 @@ class UpdateAll(TaskHandler):
     def prepare(self):
         self.kv.set("update.success", 0)
         self.kv.set("update.courses", 0)
+        self.kv.set("update.updated", 0)
 
     def get(self):
         # We make breakpoint a marker to continue the update process.  Say the
@@ -492,7 +493,7 @@ class UpdateAll(TaskHandler):
                 uc = ""
                 for uc in ucs:
                     total += 1
-                    if total % 5 == 0:
+                    if total % 5 == 0 and delay < 600:
                         delay += 1
                     sae.taskqueue.add_task(
                         "update_queue", "/backend/update/%s" % uc, delay=delay)
@@ -511,7 +512,7 @@ class UpdateAll(TaskHandler):
 
         # Update summary
         sae.taskqueue.add_task(
-            "update_queue", "/backend/summary?total=%s" % total)
+            "update_queue", "/backend/summary?total=%s" % total, delay=delay)
 
 
 class SummaryHandler(TaskHandler):
@@ -519,8 +520,9 @@ class SummaryHandler(TaskHandler):
         total = int(self.get_argument("total"))
         success = self.kv.get("update.success")
         courses = self.kv.get("update.courses")
+        updated = self.kv.get("update.updated")
         failed = total - success
-        avg = float(courses) / float(success)
+        avg = float(courses) / float(updated)
 
         title = "Update Finished"
         content = utf8("%d success, %d failed.\n"
@@ -589,13 +591,15 @@ class UpdateById(TaskHandler):
                     noteinfo
                 )
 
+            self.kv.set("update.updated", self.kv.get("update.updated")+1)
+            self.kv.set("update.courses",
+                        self.kv.get("update.courses")+len(new_courses))
+
         # Save to KVDB after every update.
         # Rank maybe updated without new releases.
         self.kv.set(utf8(u.usercode), u)
 
         self.kv.set("update.success", self.kv.get("update.success")+1)
-        self.kv.set(
-            "update.courses", self.kv.get("update.courses")+len(new_courses))
 
 
 class SMSById(TaskHandler):
