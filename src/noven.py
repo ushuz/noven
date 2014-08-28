@@ -526,8 +526,8 @@ class SummaryHandler(TaskHandler):
 
         title = "Update Finished"
         content = utf8("%d success, %d failed.\n"
-                       "%d courses, %.1f on average." %
-                       (success, failed, courses, avg))
+                       "%d courses, %d updated, %.1f on average." %
+                       (success, failed, courses, updated, avg))
         pl = urllib.urlencode({"t": title, "c": content})
         sae.taskqueue.add_task("message_queue", "/backend/notie", pl)
 
