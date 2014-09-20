@@ -522,7 +522,7 @@ class SummaryHandler(TaskHandler):
         courses = self.kv.get("update.courses")
         updated = self.kv.get("update.updated")
         failed = total - success
-        avg = float(courses) / float(updated)
+        avg = float(courses) / (float(updated) or 1)
 
         title = "Update Finished"
         content = utf8("%d success, %d failed.\n"
