@@ -90,7 +90,7 @@ class User(object):
             try:
                 r = o(url, data=data, verify=False)
             except Exception as e:
-                log.error("%s - %s", self.usercode, e)
+                log.debug("%s - %s", self.usercode, e)
                 continue
             return r
 
