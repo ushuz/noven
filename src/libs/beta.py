@@ -112,31 +112,22 @@ class User(object):
         self._session = None
 
     def _fetch(self):
+        url = DATA_URL % self.usercode
+
+        pattern = re.compile('<input type="hidden" name="__VIEWSTATE" value="(.+?)"')
+        m = pattern.search(self._open(url).content.decode("gbk"))
+        if not m: raise Exception("Can't find __VIEWSTATE")
+        vs = m.group(1)
+
         payload = {
-            "__VIEWSTATE": "dDwxMjA1NjA5MjcxO3Q8O2w8aTwxPjs+O2w8dDw7bDxpPDI+O"
-                "2k8NT47aTwyMz47aTwyNT47aTwzOT47aTw0MT47aTw0Mz47aTw0NT47PjtsP"
-                "HQ8dDw7dDxpPDE1PjtAPFxlOzIwMDEtMjAwMjsyMDAyLTIwMDM7MjAwMy0yM"
-                "DA0OzIwMDQtMjAwNTsyMDA1LTIwMDY7MjAwNi0yMDA3OzIwMDctMjAwODsyM"
-                "DA4LTIwMDk7MjAwOS0yMDEwOzIwMTAtMjAxMTsyMDExLTIwMTI7MjAxMi0yM"
-                "DEzOzIwMTMtMjAxNDsyMDE0LTIwMTU7PjtAPFxlOzIwMDEtMjAwMjsyMDAyL"
-                "TIwMDM7MjAwMy0yMDA0OzIwMDQtMjAwNTsyMDA1LTIwMDY7MjAwNi0yMDA3O"
-                "zIwMDctMjAwODsyMDA4LTIwMDk7MjAwOS0yMDEwOzIwMTAtMjAxMTsyMDExL"
-                "TIwMTI7MjAxMi0yMDEzOzIwMTMtMjAxNDsyMDE0LTIwMTU7Pj47Pjs7Pjt0P"
-                "HQ8cDxwPGw8RGF0YVRleHRGaWVsZDtEYXRhVmFsdWVGaWVsZDs+O2w8eHhxO"
-                "3hxMTs+Pjs+O3Q8aTw4PjtAPFxlO+enizvlhqw755+tO+aakTvmmKU75aSPO"
-                "+efrTs+O0A8XGU7MXznp4s7MXzlhqw7MXznn607MXzmmpE7MnzmmKU7Mnzlp"
-                "I87Mnznn607Pj47Pjs7Pjt0PHA8O3A8bDxvbmNsaWNrOz47bDx3aW5kb3cuc"
-                "HJpbnQoKVw7Oz4+Pjs7Pjt0PHA8O3A8bDxvbmNsaWNrOz47bDx3aW5kb3cuY"
-                "2xvc2UoKVw7Oz4+Pjs7Pjt0PEAwPDs7Ozs7Ozs7Ozs+Ozs+O3Q8QDA8Ozs7O"
-                "zs7Ozs7Oz47Oz47dDxAMDw7Ozs7Ozs7Ozs7Pjs7Pjt0PHA8cDxsPFRleHQ7P"
-                "jtsPFpKRFg7Pj47Pjs7Pjs+Pjs+Pjs+u+mkiSBSDpwz5k4RDPZWljMCNUs=",
+            "__VIEWSTATE": vs,
             "ddlXN": "",
             "ddlXQ": "",
             "txtQSCJ": "",
             "txtZZCJ": "",
             "Button2": u"在校学习成绩查询".encode("gb2312")
         }
-        url = DATA_URL % self.usercode
+
         return self._open(url, payload).content.decode("gbk")
 
     def _get_name(self, data):
