@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# Ask for confirmation
+echo "Noven is awesome! Let's zip it!"
+read -p "Continue?" -n 1
+echo
+
+# Prepare
+mkdir src/static
+
+# Copy images
+echo Copying Images...
+cp -fLRX assets/img src/static/img
+echo Copying Images...Done
+echo
+
+# Compress static files
+echo Compressing Static Files...
+mkdir src/static/css
+mkdir src/static/js
+./min assets/css src/static/css
+./min assets/js src/static/js
+echo Compressing Static Files...Done
+echo
+
+# Package src/ to "src-%Y%m%d.zip"
+cd src
+zip -0x "*.DS_Store" *.pyc *.db *.wsgic test* -r "../src-$(date +"%Y%m%d").zip" .
+echo Zipping...Done
+echo
+
+# Clean up
+rm -rf static
+cd ..
+echo Cleaning Up...Done
