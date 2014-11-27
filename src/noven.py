@@ -667,9 +667,9 @@ class NotieHandler(TaskHandler):
             "content": content,
         }
 
-        r = requests.post(url, data=data, verify=False)
+        # r = requests.post(url, data=data, verify=False)
 
-        self.write(r.json())
+        # self.write(r.json())
 
     def check_xsrf_cookie(self):
         pass
