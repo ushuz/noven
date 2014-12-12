@@ -118,7 +118,9 @@ class User(object):
             'action="xscj\.aspx\?xh=.+?<input type="hidden" name="__VIEWSTATE"'
             ' value="(.+?)"', flags=re.DOTALL)
         m = pattern.search(self._open(url).content.decode("gbk"))
-        if not m: raise Exception("Can't find __VIEWSTATE")
+        if not m:
+            raise Exception("Can't find __VIEWSTATE.")
+
         vs = m.group(1)
 
         payload = {
@@ -142,9 +144,11 @@ class User(object):
 
     def _get_courses(self, data):
         from BeautifulSoup import BeautifulSoup
-        soup = BeautifulSoup(data)
+        grid = BeautifulSoup(data).find("table", id="DataGrid1")
+        if not grid:
+            raise Exception("Can't find DataGrid1.")
 
-        l = soup.find("table", id="DataGrid1").contents
+        l = grid.contents
 
         del l[0:2]
         del l[-1]
