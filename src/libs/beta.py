@@ -114,7 +114,9 @@ class User(object):
     def _fetch(self):
         url = DATA_URL % self.usercode
 
-        pattern = re.compile('<input type="hidden" name="__VIEWSTATE" value="(.+?)"')
+        pattern = re.compile(
+            'action="xscj\.aspx\?xh=.+?<input type="hidden" name="__VIEWSTATE"'
+            ' value="(.+?)"', flags=re.DOTALL)
         m = pattern.search(self._open(url).content.decode("gbk"))
         if not m: raise Exception("Can't find __VIEWSTATE")
         vs = m.group(1)
