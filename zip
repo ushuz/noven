@@ -25,7 +25,7 @@ echo
 
 # Package src/ to "src-%Y%m%d.zip"
 cd src
-zip -0x "*.DS_Store" *.pyc *.db *.wsgic test* -r "../src-$(date +"%Y%m%d").zip" .
+zip -r "../src-$(date +"%Y%m%d").zip" . -x "*.DS_Store" "*.pyc" "*.db" "*.wsgic" "test*"
 echo Zipping...Done
 echo
 
