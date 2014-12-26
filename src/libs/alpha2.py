@@ -88,7 +88,7 @@ class User(object):
 
         while True:
             try:
-                r = o(url, data=data, verify=False)
+                r = o(url, data=data, verify=False, timeout=10)
             except Exception as e:
                 log.debug("%s - %s", self.usercode, e)
                 continue
