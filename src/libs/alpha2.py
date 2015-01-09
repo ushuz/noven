@@ -86,13 +86,16 @@ class User(object):
         """
         o = self._session.post if data else self._session.get
 
-        while True:
+        retry = 5
+        while retry:
             try:
                 r = o(url, data=data, verify=False, timeout=10)
             except Exception as e:
+                retry -= 1
                 log.debug("%s - %s", self.usercode, e)
                 continue
             return r
+        raise Exception("Connection timeout.")
 
     def _login(self):
         # self._session = requests.session()
