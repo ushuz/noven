@@ -412,6 +412,11 @@ class WxHandler(TaskHandler):
                 self.reply(u"请先登记")
             return
 
+        # Already signed-up users
+        if isinstance(msg, NovenWx.HelloMessage):
+            self.reply("别淘气，你已经登记过了~")
+            return
+
         # Score query
         if isinstance(msg, NovenWx.QueryMessage):
             if u.wx_push:

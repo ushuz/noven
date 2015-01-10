@@ -85,4 +85,4 @@ class BlahMessage(WxMessage):
 
 
 class ReportMessage(WxMessage):
-    """Users request his/her own report."""
+    """Users request their own report."""
