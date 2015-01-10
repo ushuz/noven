@@ -180,7 +180,7 @@ class HomeHandler(SignUpHandler):
             raise tornado.web.HTTPError(422)
 
         # Check carrier
-        pattern = r"^1(3[4-9]|47|5[0-2]|5[7-9]|8[2-4]|8[7-8])\d{8}"
+        pattern = r"^1(3[4-9]|47|5[0-2]|5[7-9]|78|8[2-4]|8[7-8])\d{8}"
         if mcode and not re.match(pattern, mcode):
             self.log.error("%s - Non-CMCC mobile: %s", ucode, mcode)
             raise tornado.web.HTTPError(423)
