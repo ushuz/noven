@@ -105,7 +105,7 @@ class User(object):
             "UserPassword": self.password
         }
         r = self._open(LOGIN_URL, data=payload)
-        t = r.content.decode("gbk")
+        t = r.content.decode("gbk", "ignore")
 
         # `requests.Session` can NOT be serialized properly in KVDB. We must
         # clean it up before save.
@@ -126,7 +126,7 @@ class User(object):
         r = self._open(NAME_URL, data={"xh": self.usercode})
 
         pattern = u"""<td>(.+?)\s*</td>"""
-        m = re.findall(pattern, r.content.decode("gbk"))
+        m = re.findall(pattern, r.content.decode("gbk", "ignore"))
 
         if m:
             self.name = m[1]
@@ -139,7 +139,7 @@ class User(object):
     def _get_GPA(self, r, all=False):
         """Save and return all-term GPA or current-term GPA respectly."""
         pattern = u"<p>在本查询时间段，你的学分积为(.+?)、必修课取"
-        m = re.search(pattern, r.content.decode("gbk"))
+        m = re.search(pattern, r.content.decode("gbk", "ignore"))
         if m:
             if all:
                 self.GPA = m.group(1)
@@ -153,15 +153,16 @@ class User(object):
 
     def _get_courses(self, r):
         """Save and return newly-released courses, save rank as well."""
+        content = r.content.decode("gbk", "ignore")
         # If user not regisered yet, then we can't fetch any data.
         # Remember to logout before raise.
-        if u"你还没有学期注册" in r.content.decode("gbk"):
+        if u"你还没有学期注册" in content:
             self._logout()
             raise Exception("User not registered.")
 
         # Import BeautifulSoup to deal with the data we got.
         from BeautifulSoup import BeautifulSoup
-        soup = BeautifulSoup(r.content)
+        soup = BeautifulSoup(content)
 
         l = soup.findAll('tr', height='25')
         if not l:
@@ -255,7 +256,7 @@ class User(object):
 
         # Check Graduation Project
         pattern = u"""题目：(.+?)<br>\s*导师：(.+?)<br>\s*成绩：(.+?)"""
-        m = re.search(pattern, r.content.decode("gbk"))
+        m = re.search(pattern, content)
         if m:
             # print m.groups()
             subject, _, score = m.groups()
