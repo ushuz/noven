@@ -560,9 +560,9 @@ class UpdateById(TaskHandler):
             raise tornado.web.HTTPError(425)
 
         # Debug settings
-        if "SERVER_SOFTWARE" not in os.environ:
-            alpha.DATA_URL = "http://127.0.0.1:8888/data"
-            beta.DATA_URL = "http://127.0.0.1:8888/xscj.aspx?xh=%s"
+        # if "SERVER_SOFTWARE" not in os.environ:
+        #     alpha.DATA_URL = "http://127.0.0.1:8888/data"
+        #     beta.DATA_URL = "http://127.0.0.1:8888/xscj.aspx?xh=%s"
 
         try:
             new_courses = u.update()
