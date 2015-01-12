@@ -303,7 +303,7 @@ class WelcomeHandler(SignUpHandler):
             except Exception as e:
                 self.kv.delete(utf8(u.usercode))
                 self.log.error("%s - %s", u.usercode, e)
-                raise HTTPError(500)
+                raise tornado.web.HTTPError(500)
 
             self.kv.set(utf8(u.usercode), u)
 
