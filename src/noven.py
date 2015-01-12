@@ -95,9 +95,9 @@ class BaseHandler(tornado.web.RequestHandler):
 
         # 5XX for server
         if status_code >= 500:
-            error = "服务器开小差了，去找 Noven 打个小报告吧！"
+            error = "服务器开小差了，再试试看？"
         else:
-            error = errors.get(status_code, "请联系 Noven 。")
+            error = errors.get(status_code, "请联系 Noven。")
 
         self.render("sorry.html", error=error)
 
@@ -300,9 +300,9 @@ class WelcomeHandler(SignUpHandler):
             try:
                 u.init()
             except Exception as e:
-                # Logout after exceptions
-                u._logout()
-                self.log.critical("%s - %s", u.usercode, e)
+                self.kv.delete(utf8(u.usercode))
+                self.log.error("%s - %s", u.usercode, e)
+                raise HTTPError(500)
 
             self.kv.set(utf8(u.usercode), u)
 
