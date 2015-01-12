@@ -5,6 +5,7 @@ import functools
 import hashlib
 import logging
 import os
+import random
 import re
 import time
 import urllib
@@ -400,6 +401,13 @@ class WxHandler(TaskHandler):
         log = logging.getLogger("Noven.Weixin")
 
         if isinstance(msg, NovenWx.BlahMessage):
+
+            # 邱同学
+            if self.current_user and self.current_user.usercode == "***REMOVED***":
+                hi = random.choice([u"好的大王！", u"没问题大王！", u"收到大王！"])
+                self.reply(hi)
+                return
+
             self.reply(u"收到！")
             return
 
