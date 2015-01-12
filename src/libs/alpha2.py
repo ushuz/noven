@@ -79,11 +79,6 @@ class User(object):
         self._logout()
 
     def _open(self, url, data=None):
-        """Loop until a response got.
-
-        It will return a response eventually unless the URL is unreachable and
-        the thread will be dead.
-        """
         o = self._session.post if data else self._session.get
 
         retry = 5
@@ -95,19 +90,14 @@ class User(object):
                 log.debug("%s - %s", self.usercode, e)
                 continue
             return r
-        raise Exception("Connection timeout.")
+        raise Exception("Connection failed.")
 
     def _login(self):
         # self._session = requests.session()
-        # We use VPN session to perform HTTP requests
-        import sae.kvdb
-        kv = sae.kvdb.KVClient()
 
-        s = kv.get("VPN_SESSION")
-        if not s or s.expired:
-            s = vpn.Session()
-            kv.set("VPN_SESSION", s)
-        self._session = s
+        # We now use VPN session to perform requests as JWXT can NOT be
+        # accessed directly since 2014.04.14.
+        self._session = vpn.session()
 
         payload = {
             "type": "Logon", "B1": u" 提　交 ".encode("gbk"),

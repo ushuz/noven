@@ -27,6 +27,18 @@ class Session(requests.Session):
         self.username = username
         self.password = password
 
+        # Retry 5 times to establish a VPN connection.
+        retry = 5
+        while retry:
+            try:
+                self._connect()
+            except:
+                retry -= 1
+                continue
+            return
+        raise Exception("Can NOT connect to VPN.")
+
+    def _connect(self):
         p = {
             "tz_offset": "480",
             "username": self.username,
@@ -36,7 +48,7 @@ class Session(requests.Session):
             "btnSubmit.y": "0",
             "btnSubmit": "Sign In"
         }
-        r = self.post(LOGIN_URL, p, verify=False)
+        r = self.post(LOGIN_URL, p, verify=False, timeout=10)
 
         if "user-confirm" in r.url:
             pattern = 'taStr" type="hidden" name="FormDataStr" value="(.*?)">'
@@ -44,14 +56,11 @@ class Session(requests.Session):
                 "btnContinue": "继续会话",
                 "FormDataStr": re.search(pattern, r.content).group(1)
             }
-            self.post(LOGIN_URL, p, verify=False)
+            self.post(LOGIN_URL, p, verify=False, timeout=10)
 
-    def logout(self):
+    def _close(self):
         self.get(LOGOUT_URL, verify=False)
 
-    @property
-    def expired(self):
-        return int(time.time()) - int(self.cookies.get("DSLastAccess", 0)) > 480
 
 # Shortcut
 session = Session
