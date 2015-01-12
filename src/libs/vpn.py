@@ -52,3 +52,6 @@ class Session(requests.Session):
     @property
     def expired(self):
         return int(time.time()) - int(self.cookies.get("DSLastAccess", 0)) > 480
+
+# Shortcut
+session = Session
