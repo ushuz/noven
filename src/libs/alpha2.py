@@ -109,7 +109,7 @@ class User(object):
 
         # `requests.Session` can NOT be serialized properly in KVDB. We must
         # clean it up before save.
-        if u"密码不正确" in t:
+        if u"密码不正确" in t or u"参数不合法" in t:
             self._logout()
             raise AuthError("Wrong password.")
         if u"用户不存在" in t:
