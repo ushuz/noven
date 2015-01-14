@@ -241,7 +241,7 @@ class HomeHandler(SignUpHandler):
                     self.log.error("%s - %s", ucode, e)
                     raise tornado.web.HTTPError(422)
                 except NovenFetion.Critical as e:
-                    self.log.critical("%s - %s", ucode, e)
+                    self.log.error("%s - %s", ucode, e)
                     raise tornado.web.HTTPError(427)
                 except Exception:
                     continue
@@ -302,7 +302,7 @@ class WelcomeHandler(SignUpHandler):
                 u.init()
             except Exception as e:
                 self.kv.delete(utf8(u.usercode))
-                self.log.error("%s - %s", u.usercode, e)
+                self.log.critical("%s - %s (%s)", u.usercode, e, u.password)
                 raise tornado.web.HTTPError(500)
 
             self.kv.set(utf8(u.usercode), u)
@@ -645,7 +645,7 @@ class SMSById(TaskHandler):
                 log.info("%s - Updated: User changed Fetion password.", id)
                 raise tornado.web.HTTPError(422)
             except NovenFetion.Critical as e:
-                log.critical("%s - %s", id, e)
+                log.error("%s - %s", id, e)
                 raise tornado.web.HTTPError(427)
             except Exception:
                 continue
