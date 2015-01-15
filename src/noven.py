@@ -289,8 +289,6 @@ class WelcomeHandler(SignUpHandler):
     def get(self):
         u = self.current_user
         if u.verified:
-            self.render("welcome.html")
-
             # Return if the user is already initialized (to avoid unnecessary
             # re-initialization when the user refresh welcome page).
             # Won't work if the user have no courses.
@@ -306,6 +304,8 @@ class WelcomeHandler(SignUpHandler):
                 raise tornado.web.HTTPError(500)
 
             self.kv.set(utf8(u.usercode), u)
+
+            self.render("welcome.html")
 
             l = [
                 "Code: %s" % u.usercode,
