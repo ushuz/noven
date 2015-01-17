@@ -77,7 +77,7 @@ class BaseHandler(tornado.web.RequestHandler):
                  "若忘记飞信密码，请编辑新密码发送至12520050。",
 
             # 423 for non-CMCC mobile
-            423: "仅支持中国移动号码。",
+            423: "仅支持中国移动号码（不包括178号段）。",
 
             # 424 for duplicate sign-up
             424: "别淘气，你已经登记过了~",
@@ -181,7 +181,7 @@ class HomeHandler(SignUpHandler):
             raise tornado.web.HTTPError(422)
 
         # Check carrier
-        pattern = r"^1(3[4-9]|47|5[0-2]|5[7-9]|78|8[2-4]|8[7-8])\d{8}"
+        pattern = r"^1(3[4-9]|47|5[0-2]|5[7-9]|8[2-4]|8[7-8])\d{8}"
         if mcode and not re.match(pattern, mcode):
             self.log.error("%s - Non-CMCC mobile: %s", ucode, mcode)
             raise tornado.web.HTTPError(423)
