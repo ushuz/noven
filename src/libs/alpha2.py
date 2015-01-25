@@ -164,7 +164,8 @@ class User(object):
         from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(content)
 
-        l = soup.findAll('tr', height='25')
+        l = soup.findAll("tr", oncontextmenu="TSCopyToClipBook(this.title)",
+                         height="25")
         if not l:
             # IndexError sometimes occurs when saving rank.  It appears that
             # malformed response we received is to blame, i.e. `r.content` is
@@ -185,10 +186,6 @@ class User(object):
             log.debug("%s - Can't get rank for the user.", self.usercode)
 
         log.debug("%s - Rank saved: %s", self.usercode, self.rank)
-
-        # Delete unnecessary data.
-        del l[0]
-        del l[-4:]
 
         new_courses = {}
         courses = self.courses.values()
