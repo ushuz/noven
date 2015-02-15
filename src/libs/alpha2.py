@@ -160,6 +160,15 @@ class User(object):
             self._logout()
             raise Exception("User not registered.")
 
+        # Save the rank calculated by JWXT.
+        # If failed, turn to default.  Most probably, the user is in his first
+        # term.
+        pattern = u"<p>(全学程你的班级排名为第\d+名、专业排名为第\d+名)</p>"
+        m = re.search(pattern, content)
+        self.rank = m and m.group(1) or self.rank
+
+        log.debug("%s - Rank saved: %s", self.usercode, self.rank)
+
         # Import BeautifulSoup to deal with the data we got.
         from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(content)
@@ -174,18 +183,6 @@ class User(object):
             log.debug(
                 "%s - Something wrong with the returned data.", self.usercode)
             raise Exception("Data corrupted.")
-
-        # Save the rank calculated by JWXT.
-        # If failed, turn to default.  Most probably, the user is in his first
-        # term.
-        try:
-            self.rank = unicode(l[-1].contents[1].contents[2].string[5:]) \
-                if u"全学程" in l[-1].contents[1].contents[2].string \
-                else unicode(l[-1].contents[1].contents[3].string[5:])
-        except Exception as e:
-            log.debug("%s - Can't get rank for the user.", self.usercode)
-
-        log.debug("%s - Rank saved: %s", self.usercode, self.rank)
 
         new_courses = {}
         courses = self.courses.values()
