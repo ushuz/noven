@@ -26,6 +26,10 @@ class AuthError(Exception):
     """Wrong usercode or password."""
 
 
+class NotRegisteredError(Exception):
+    """User not regisered for this term yet."""
+
+
 class Course(dict):
     """Wrapper for a course.
 
@@ -158,7 +162,7 @@ class User(object):
         # Remember to logout before raise.
         if u"你还没有学期注册" in content:
             self._logout()
-            raise Exception("User not registered.")
+            raise NotRegisteredError("User not registered.")
 
         # Save the rank calculated by JWXT.
         # If failed, turn to default.  Most probably, the user is in his first

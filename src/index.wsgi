@@ -52,6 +52,7 @@ httplib.responses.update({
     425: "Not Activated",
     426: "Blocked",
     427: "Verification Required",
+    428: "Not Registered",
     444: "Unknown",
 })
 

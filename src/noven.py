@@ -91,6 +91,9 @@ class BaseHandler(tornado.web.RequestHandler):
             # 427 for encountering Fetion verification
             427: "飞信状态异常，请留空手机号码和飞信密码。",
 
+            # 428 for not registering for the term
+            428: "未学期注册，无法登记。",
+
             # 444 for unknown
         }
 
@@ -298,6 +301,10 @@ class WelcomeHandler(SignUpHandler):
             # Here `init()` could be async.
             try:
                 u.init()
+            except alpha.NotRegisteredError as e:
+                self.kv.delete(utf8(u.usercode))
+                self.log.critical("%s - %s (%s)", u.usercode, e, u.password)
+                raise tornado.web.HTTPError(428)
             except Exception as e:
                 self.kv.delete(utf8(u.usercode))
                 self.log.critical("%s - %s (%s)", u.usercode, e, u.password)
