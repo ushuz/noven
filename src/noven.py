@@ -628,6 +628,10 @@ class UpdateById(TaskHandler):
 
 class SMSById(TaskHandler):
     def post(self, id):
+
+        # SMS is not available for now
+        return
+
         log = logging.getLogger("Noven.SMS")
 
         u = self.kv.get(utf8(id))
