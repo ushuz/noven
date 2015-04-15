@@ -594,9 +594,9 @@ class UpdateById(TaskHandler):
 
             # It's not likely that 5 or more new releases within 3h.  Fishy
             # things might happen.  Should be disabled after hot phrase.
-            if len(new_courses) > 4:
-                log.critical("%s - Update aborted.", id)
-                raise tornado.web.HTTPError(444)
+            # if len(new_courses) > 4:
+            #     log.critical("%s - Update aborted.", id)
+            #     raise tornado.web.HTTPError(444)
 
             # If `u.wx_id` exists, we should update `u.wx_push` with
             # `new_courses` so that we can return it when users performs a
