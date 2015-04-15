@@ -30,10 +30,9 @@ a:hover {
 }
 
 #logo {
-    background: url("../img/logo_middle.png") no-repeat;
+    background: url(../img/logo_middle.png) no-repeat;
     height: 75px;
     width: 200px;
-    display: inline-block;
 }
 
 /* Main */
@@ -86,11 +85,10 @@ a:hover {
     }
 
     #logo {
-        background: url("../img/logo_middle.png") no-repeat;
         background-size: 100px;
         height: 38px;
         width: 100px;
-        margin-left: 10px
+        margin: auto;
     }
 
     .left,
