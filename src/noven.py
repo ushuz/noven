@@ -150,11 +150,7 @@ class HomeHandler(SignUpHandler):
         t = self.get_argument("t", None)
         s = self.get_argument("s", None)
 
-        b = len(list(self.kv.getkeys_by_prefix("1")))
-        z = len(list(self.kv.getkeys_by_prefix("3")))
-        total = b + z
-
-        self.render("signup.html", total=total, t=t, s=s)
+        self.render("signup.html", t=t, s=s)
 
     def post(self):
         t = self.get_argument("t", None)
