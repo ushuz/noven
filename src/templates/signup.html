@@ -43,7 +43,9 @@
   <div class="right">
     <div class="tips">
       <p>&gt; Noven 帮您轻松掌握成绩动态</p>
+    {% if total > 0 %}
       <p>&gt; 已有 {{ total }} 人在使用 Noven</p>
+    {% end %}
     </div>
   </div>
   <div class="clear"></div>
