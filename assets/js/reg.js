@@ -7,18 +7,18 @@ var checkForm = function() {
     if (String(form.action).indexOf("verify") == -1) {
         var uc = document.getElementById("uc");
         var mc = document.getElementById("mc");
-        var up = document.getElementById("up");
-        var mp = document.getElementById("mp");
-        var t = document.getElementById("t");
-        var s = document.getElementById("s");
         if ((uc.value.length<9 && uc.value.length>10) || up.value.length==0) {
+        // var up = document.getElementById("up");
+        // var mp = document.getElementById("mp");
+        // var t = document.getElementById("t");
+        // var s = document.getElementById("s");
             return false;
         }
-        if (!t && !s || mc.value) {
-            if (mc.value.length!=11 || mp.value.length==0) {
-                return false;
-            }
-        }
+        // if (!t && !s || mc.value) {
+        //     if (mc.value.length!=11 || mp.value.length==0) {
+        //         return false;
+        //     }
+        // }
     } else {
         var vcode = document.getElementById("vcode");
         if (vcode.value.length != 6) {
@@ -30,11 +30,9 @@ var checkForm = function() {
 
 // Binding events with functions.
 var uc = document.getElementById("uc");
-var mc = document.getElementById("mc");
-if (uc && mc) {
-    uc.onkeypress = digitOnly;
-    mc.onkeypress = digitOnly;
-}
+// var mc = document.getElementById("mc");
+uc && (uc.onkeypress = digitOnly);
+// mc && (mc.onkeypress = digitOnly);
 var form = document.getElementsByTagName("form")[0];
 if (form) {
     form.onsubmit = checkForm;
