@@ -10,15 +10,14 @@ import vpn
 
 
 ALL_TERMS = True
-NAME_URL = "http://202.204.115.67/xueshengxinxichaxun/query.asp"
-
-# Direct access URL
 LOGIN_URL = "http://jwxt.bjfu.edu.cn/jwxt/logon.asp"
+NAME_URL = "http://jwxt.bjfu.edu.cn/jwxt/menu.asp"
 DATA_URL = "http://jwxt.bjfu.edu.cn/jwxt/Student/StudentGraduateInfo.asp"
 LOGOUT_URL = "http://jwxt.bjfu.edu.cn/jwxt/logoff.asp"
 
 # Corresponding URL when using VPN
 LOGIN_URL = "https://vpn.bjfu.edu.cn/jwxt/,DanaInfo=jwxt.bjfu.edu.cn+logon.asp"
+NAME_URL = "https://vpn.bjfu.edu.cn/jwxt/,DanaInfo=jwxt.bjfu.edu.cn+menu.asp"
 DATA_URL = "https://vpn.bjfu.edu.cn/jwxt/Student/,DanaInfo=jwxt.bjfu.edu.cn+StudentGraduateInfo.asp"
 
 
@@ -127,13 +126,12 @@ class User(object):
 
     def _get_name(self):
         """Save and return the user's true name."""
-        r = self._open(NAME_URL, data={"xh": self.usercode})
+        r = self._open(NAME_URL)
 
-        pattern = u"""<td>(.+?)\s*</td>"""
-        m = re.findall(pattern, r.content.decode("gbk", "ignore"))
-
+        pattern = u""".* MenuItem\( "注销 (.+?)", .*"""
+        m = re.search(pattern, r.content.decode("gbk"))
         if m:
-            self.name = m[1]
+            self.name = m.groups()[0]
             log.debug("%s - Name found: %s", self.usercode, self.name)
             return self.name
         else:
