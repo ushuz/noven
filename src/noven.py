@@ -150,6 +150,9 @@ class HomeHandler(SignUpHandler):
         t = self.get_argument("t", None)
         s = self.get_argument("s", None)
 
+        if not t or not s:
+            raise tornado.web.HTTPError(401)
+
         self.render("signup.html", t=t, s=s)
 
     def post(self):
