@@ -7,11 +7,11 @@ var checkForm = function() {
     if (String(form.action).indexOf("verify") == -1) {
         var uc = document.getElementById("uc");
         var mc = document.getElementById("mc");
-        if ((uc.value.length<9 && uc.value.length>10) || up.value.length==0) {
         // var up = document.getElementById("up");
         // var mp = document.getElementById("mp");
         // var t = document.getElementById("t");
         // var s = document.getElementById("s");
+        if ((uc.value.length < 9 || uc.value.length > 10) || up.value.length == 0) {
             return false;
         }
         // if (!t && !s || mc.value) {
