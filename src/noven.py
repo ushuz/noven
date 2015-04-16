@@ -263,7 +263,7 @@ class HomeHandler(SignUpHandler):
             # self.log.info("%s - Activated.", ucode)
             self.redirect("/welcome")
         else:
-            self.log.critical("%s - Invalid user object.", ucode, e)
+            self.log.critical("%s - Invalid user object.", ucode)
             raise tornado.web.HTTPError(444)
 
 
