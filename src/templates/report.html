@@ -29,7 +29,7 @@
               {% end %}
               </span>
             </td>
-            <td class="score"><span>{% if c.point == "-" %}待评{% else %}{{ c.score }}{% end %}</span></td>
+            <td class="score"><span>{% if c.score.startswith(u"待评") %}待评{% else %}{{ c.score }}{% end %}</span></td>
           </tr></tbody></table>
         </div>
     {% end %}
