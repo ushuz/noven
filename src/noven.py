@@ -153,7 +153,8 @@ class HomeHandler(SignUpHandler):
         if not t or not s:
             raise tornado.web.HTTPError(401)
 
-        self.render("signup.html", t=t, s=s)
+        # self.render("signup.html", t=t, s=s)
+        self.render("sorry.html", error="Noven 将在 2015 年 8 月 31 日停止运营，目前登记已停止。")
 
     def post(self):
         t = self.get_argument("t", None)
