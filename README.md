@@ -34,6 +34,16 @@
 *   License: BSD
 *   Website: <http://www.crummy.com/software/BeautifulSoup/>
 
+### normalize.css
+*   Author: Nicolas Gallagher
+*   License: MIT
+*   Website: <https://github.com/necolas/normalize.css>
+
+### Swipe
+*   Author: Brad Birdsall
+*   License: MIT
+*   Website: <https://github.com/thebird/swipe>
+
 
 ## THX
 猴子、小胖、小白、小2B、司音姐姐、骚哥、兆子、楷子
