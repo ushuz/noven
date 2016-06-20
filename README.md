@@ -45,10 +45,6 @@
 *   Website: <https://github.com/thebird/swipe>
 
 
-## THX
-猴子、小胖、小白、小2B、司音姐姐、骚哥、兆子、楷子
-
-
 ## LICENSE
 
 The MIT License
